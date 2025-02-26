@@ -20,4 +20,8 @@ public:
 	Ui::PlateFormClass ui;
 
 	void func();
+	void checkBoxIndexFinger();
+	void checkBoxMiddleFinger();
+	void checkBoxRingFinger();
+	void checkBoxPinky();
 };

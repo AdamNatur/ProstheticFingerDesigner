@@ -5,10 +5,65 @@ PlateForm::PlateForm(QWidget *parent)
 	: QDialog(parent)
 {
 	ui.setupUi(this);
+
+	ui.lineEdit_IndexFinger->setDisabled(true);
+	ui.lineEdit_RingFinger->setDisabled(true);
+	ui.lineEdit_MiddleFinger->setDisabled(true);
+	ui.lineEdit_Pinky->setDisabled(true);
 }
 
 PlateForm::~PlateForm()
 {}
+
+
+void PlateForm::checkBoxIndexFinger() {
+	if (ui.checkBox_Index->isChecked()) {
+		ui.lineEdit_IndexFinger->setDisabled(false);
+		func();
+
+	}
+	else {
+		ui.lineEdit_IndexFinger->setDisabled(true);
+		ui.lineEdit_IndexFinger->setText("");
+		func();
+	}
+}
+
+void PlateForm::checkBoxMiddleFinger() {
+	if (ui.checkBox_middle->isChecked()) {
+		ui.lineEdit_MiddleFinger->setDisabled(false);
+		func();
+	}
+	else {
+		ui.lineEdit_MiddleFinger->setText("");
+		ui.lineEdit_MiddleFinger->setDisabled(true);
+		func();
+	}
+}
+
+void PlateForm::checkBoxRingFinger() {
+	if (ui.checkBox_Ring->isChecked()) {
+		ui.lineEdit_RingFinger->setDisabled(false);
+		func();
+	}
+	else {
+		ui.lineEdit_MiddleFinger->setText("");
+		ui.lineEdit_RingFinger->setDisabled(true);
+		func();
+	}
+}
+
+void PlateForm::checkBoxPinky() {
+	if (ui.checkBox_Pinky->isChecked()) {
+		ui.lineEdit_Pinky->setDisabled(false);
+		func();
+	}
+	else {
+		ui.lineEdit_Pinky->setText("");
+		ui.lineEdit_Pinky->setDisabled(true);
+		func();
+	}
+}
 
 void PlateForm:: func() {
 
