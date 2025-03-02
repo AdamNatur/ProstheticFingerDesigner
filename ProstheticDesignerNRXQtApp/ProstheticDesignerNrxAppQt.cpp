@@ -134,6 +134,11 @@ void FingerProsthetic_Mechanism() {
 //	return LineId;
 }
 
+void CreateDistalPhalange() {
+
+	
+}
+
 void FingerProsthetic_Ring() {
 
 	RingForm* pRingForm = new RingForm(nullptr);
@@ -279,7 +284,7 @@ void FingerProsthetic_Ring() {
 		/////////
 
 
-		//Boolean Substraction
+		//Boolean Subtraction
 
 		pSolid1->booleanOper(NcDb::BoolOperType::kBoolSubtract, pSolid2);
 
@@ -305,6 +310,68 @@ void FingerProsthetic_Ring() {
 
 }
 
+
+NcDb3dSolid* rectangleExtrude(AcDbBlockTableRecord* pBlock, NcGePoint3d initPoint, double length, double width, double height) {
+
+	AcDb3dPolyline* pPolylineBracer = new AcDb3dPolyline();
+
+
+	pPolylineBracer->appendVertex(new NcDb3dPolylineVertex(NcGePoint3d(initPoint.x, initPoint.y, initPoint.z)));
+	pPolylineBracer->appendVertex(new NcDb3dPolylineVertex(NcGePoint3d(initPoint.x, initPoint.y + length, initPoint.z)));
+	pPolylineBracer->appendVertex(new NcDb3dPolylineVertex(NcGePoint3d(initPoint.x + width, initPoint.y + length, initPoint.z)));
+	pPolylineBracer->appendVertex(new NcDb3dPolylineVertex(NcGePoint3d(initPoint.x + width, initPoint.y, initPoint.z)));
+
+	pPolylineBracer->makeClosed();
+
+	AcDbVoidPtrArray rectContour;
+
+	rectContour.append(pPolylineBracer);
+
+	AcDbVoidPtrArray regionsRect;
+
+	NcDbRegion::createFromCurves(rectContour, regionsRect);
+
+	AcDbRegion* pRegion_bracer = static_cast<NcDbRegion*>(regionsRect[0]);
+
+	pBlock->appendAcDbEntity(pRegion_bracer);
+
+	NcDb3dSolid* pRectSolid = new NcDb3dSolid();
+
+	pRectSolid->extrude(pRegion_bracer, height, 0.0); 
+
+	pBlock->appendNcDbEntity(pRectSolid);
+
+	pRegion_bracer->setVisibility(pRegion_bracer->visibility(), true);
+
+	return pRectSolid;
+
+}
+
+NcDb3dSolid* cylinderExtrude(AcDbBlockTableRecord* pBlock, NcDbCircle* pCircle, double height) {
+
+	AcDbVoidPtrArray circleContour;
+
+	circleContour.append(pCircle);
+
+	AcDbVoidPtrArray regionsCircle;
+
+	NcDbRegion::createFromCurves(circleContour, regionsCircle);
+
+	AcDbRegion* pRegion_circle = static_cast<NcDbRegion*>(regionsCircle[0]);
+
+	pBlock->appendAcDbEntity(pRegion_circle);
+
+	NcDb3dSolid* pCircleSolid = new NcDb3dSolid();
+
+	pCircleSolid->extrude(pRegion_circle, height, 0.0);
+
+	pBlock->appendNcDbEntity(pCircleSolid);
+
+	pRegion_circle->setVisibility(pRegion_circle->visibility(), true);
+
+	return pCircleSolid;
+}
+
 void FingerProsthetic_Plate() {
 
 	PlateForm* pPlateForm = new PlateForm(nullptr);
@@ -325,471 +392,166 @@ void FingerProsthetic_Plate() {
 
 		///Plate parameters
 
-		double bracer_width = 15;
-		double finger_width = 18;
-		double finger_length = 45;
-		double space_btw_fingers = 16;
+		double bracer_width = 15;	/// Bracer width
+		double bracer_length = 100;	/// Bracer length
 
-		/////////////////////
+		double finger_width = 18;	// Finger width for bracer
 
-		double bracer_length = 100;
+		double mainPlateFinger_width = 80; // Total width of all fingers
+		double distanceBtwJoints = (mainPlateFinger_width - finger_width) / 3; // Distance between each joint (equal)
 
-		double mainPlateFinger_width = 80;
-		double distanceBtwFingers = (mainPlateFinger_width - finger_width * 4) / 3;
+		double bracer_offset = (bracer_length - mainPlateFinger_width) / 2; // Offset from edge of bracer to first finger
 
-		double bracer_offset = (bracer_length - mainPlateFinger_width) / 2;
-
-
-		AcDbLine* pLine1 = new AcDbLine(*(new AcGePoint3d(0.0, 0.0, 0.0)), *(new AcGePoint3d(0, bracer_width, 0)));
+		double plate_thickness = 2; // Thickness plate
+		double cylinder_height = 4; // Cylinder height
+		double hole = 8; // Hole diameter
 
 
-		NcDbVoidPtrArray plateContour;
 
-		plateContour.append(pLine1);
+		NcDb3dSolid* pPlateSolid = new NcDb3dSolid();
 
 
-		NcGePoint3d arc_center(0, 0, 0);
+		pPlateSolid = rectangleExtrude(pBlock, NcGePoint3d(0, 0, 0), bracer_width, bracer_length, plate_thickness);
 
-		NcGePoint3d pointCurrent(0, bracer_width, 0);
+
+		NcGePoint3d fingerJointCenter(0,0,0);
+
 
 		///Creating finger plates for each finger
 
 		if (pPlateForm->ui.checkBox_Index->isChecked()) {
 
-			AcDbLine* pLine_temp  = new AcDbLine(pointCurrent, *(new AcGePoint3d(bracer_offset, bracer_width, 0.0)));
+			fingerJointCenter.set(bracer_offset + finger_width / 2, bracer_width + pPlateForm->ui.lineEdit_IndexFinger->text().toDouble(), 0);
 
-			AcDbLine* pLine1_index = new AcDbLine(*(new AcGePoint3d(bracer_offset, bracer_width, 0.0)), *(new AcGePoint3d(bracer_offset, bracer_width + pPlateForm->ui.lineEdit_IndexFinger->text().toDouble(), 0)));
-			AcDbLine* pLine2_index = new AcDbLine(*(new AcGePoint3d(bracer_offset + finger_width, bracer_width, 0.0)), *(new AcGePoint3d(bracer_offset + finger_width, bracer_width + pPlateForm->ui.lineEdit_IndexFinger->text().toDouble(), 0)));
+			NcDb3dSolid* pFingerSolid = rectangleExtrude(pBlock, NcGePoint3d(bracer_offset, bracer_width, 0), pPlateForm->ui.lineEdit_IndexFinger->text().toDouble(), finger_width, plate_thickness);
+			pPlateSolid->booleanOper(NcDb::BoolOperType::kBoolUnite, pFingerSolid);
 
-			arc_center.set(bracer_offset + finger_width / 2, bracer_width + pPlateForm->ui.lineEdit_IndexFinger->text().toDouble(), 0.0);
+			NcDbCircle* pCircleToAdd = new NcDbCircle(fingerJointCenter, NcGeVector3d(0,0,1), finger_width / 2);
 
-			AcDbArc* pArc_index = new AcDbArc(arc_center, finger_width / 2, 0, 6.28318530717958647692 / 2);
+			NcDb3dSolid* pCylinderToAdd = cylinderExtrude(pBlock, pCircleToAdd, cylinder_height);
 
-			pointCurrent.set(bracer_offset + finger_width, bracer_width, 0.0);
+			pBlock->appendNcDbEntity(pCylinderToAdd);
 
-			plateContour.append(pLine_temp);
-			plateContour.append(pLine1_index);
-			plateContour.append(pArc_index);
-			plateContour.append(pLine2_index);
+			pPlateSolid->booleanOper(NcDb::BoolOperType::kBoolUnite, pCylinderToAdd);
+
+			NcDbCircle* pCircleToCut = new NcDbCircle(fingerJointCenter, NcGeVector3d(0, 0, 1), hole / 2);
+
+			NcDb3dSolid* pCylinderToCut = cylinderExtrude(pBlock, pCircleToCut, cylinder_height);
+
+			pBlock->appendNcDbEntity(pCylinderToCut);
+
+			pPlateSolid->booleanOper(NcDb::BoolOperType::kBoolSubtract, pCylinderToCut);
+
+			pCylinderToCut->close();
+			pCylinderToAdd->close();
 		}
 
 		if (pPlateForm->ui.checkBox_middle->isChecked()) {
 
-			AcDbLine* pLine_temp = new AcDbLine(pointCurrent, *(new AcGePoint3d(bracer_offset + (finger_width + distanceBtwFingers), bracer_width, 0.0)));
+			fingerJointCenter.set(bracer_offset + finger_width / 2 + distanceBtwJoints, bracer_width + pPlateForm->ui.lineEdit_MiddleFinger->text().toDouble(), 0);
 
-			AcDbLine* pLine1_middle = new AcDbLine(*(new AcGePoint3d(bracer_offset + (finger_width + distanceBtwFingers), bracer_width, 0.0)), *(new AcGePoint3d(bracer_offset + (finger_width + distanceBtwFingers), bracer_width + pPlateForm->ui.lineEdit_MiddleFinger->text().toDouble(), 0)));
-			AcDbLine* pLine2_middle = new AcDbLine(*(new AcGePoint3d(bracer_offset + (finger_width + distanceBtwFingers) + finger_width, bracer_width, 0.0)), *(new AcGePoint3d(bracer_offset + (finger_width + distanceBtwFingers) + finger_width, bracer_width + pPlateForm->ui.lineEdit_MiddleFinger->text().toDouble(), 0)));
+			NcDb3dSolid* pFingerSolid = rectangleExtrude(pBlock, NcGePoint3d(bracer_offset + distanceBtwJoints, bracer_width, 0), pPlateForm->ui.lineEdit_MiddleFinger->text().toDouble(), finger_width, plate_thickness);
+			pPlateSolid->booleanOper(NcDb::BoolOperType::kBoolUnite, pFingerSolid);
 
-			arc_center.set(bracer_offset + (finger_width + distanceBtwFingers) + finger_width / 2, bracer_width + pPlateForm->ui.lineEdit_MiddleFinger->text().toDouble(), 0.0);
+			NcDbCircle* pCircleToAdd = new NcDbCircle(fingerJointCenter, NcGeVector3d(0, 0, 1), finger_width / 2);
 
-			AcDbArc* pArc_middle = new AcDbArc(arc_center, finger_width / 2, 0, 6.28318530717958647692 / 2);
+			NcDb3dSolid* pCylinderToAdd = cylinderExtrude(pBlock, pCircleToAdd, cylinder_height);
 
-			pointCurrent.set(bracer_offset + (finger_width + distanceBtwFingers) + finger_width, bracer_width, 0.0);
+			pBlock->appendNcDbEntity(pCylinderToAdd);
 
-			plateContour.append(pLine_temp);
-			plateContour.append(pLine1_middle);
-			plateContour.append(pArc_middle);
-			plateContour.append(pLine2_middle);
+			pPlateSolid->booleanOper(NcDb::BoolOperType::kBoolUnite, pCylinderToAdd);
+
+			NcDbCircle* pCircleToCut = new NcDbCircle(fingerJointCenter, NcGeVector3d(0, 0, 1), hole / 2);
+
+			NcDb3dSolid* pCylinderToCut = cylinderExtrude(pBlock, pCircleToCut, cylinder_height);
+
+			pBlock->appendNcDbEntity(pCylinderToCut);
+
+			pPlateSolid->booleanOper(NcDb::BoolOperType::kBoolSubtract, pCylinderToCut);
+
+			pCylinderToCut->close();
+			pCylinderToAdd->close();
+
 		}
 
 		if (pPlateForm->ui.checkBox_Ring->isChecked()) {
 
-			AcDbLine* pLine_temp = new AcDbLine(pointCurrent, *(new AcGePoint3d(bracer_offset + 2 * (finger_width + distanceBtwFingers), bracer_width, 0.0)));
+			fingerJointCenter.set(bracer_offset + finger_width / 2 + 2 * distanceBtwJoints, bracer_width + pPlateForm->ui.lineEdit_RingFinger->text().toDouble(), 0);
 
-			AcDbLine* pLine1_ring = new AcDbLine(*(new AcGePoint3d(bracer_offset + 2 * (finger_width + distanceBtwFingers), bracer_width, 0.0)), *(new AcGePoint3d(bracer_offset + 2 * (finger_width + distanceBtwFingers), bracer_width + pPlateForm->ui.lineEdit_RingFinger->text().toDouble(), 0)));
-			AcDbLine* pLine2_ring = new AcDbLine(*(new AcGePoint3d(bracer_offset + 2 * (finger_width + distanceBtwFingers) + finger_width, bracer_width, 0.0)), *(new AcGePoint3d(bracer_offset + 2 * (finger_width + distanceBtwFingers) + finger_width, bracer_width + pPlateForm->ui.lineEdit_RingFinger->text().toDouble(), 0)));
+			NcDb3dSolid* pFingerSolid = rectangleExtrude(pBlock, NcGePoint3d(bracer_offset + 2 * distanceBtwJoints, bracer_width, 0), pPlateForm->ui.lineEdit_RingFinger->text().toDouble(), finger_width, plate_thickness);
+			pPlateSolid->booleanOper(NcDb::BoolOperType::kBoolUnite, pFingerSolid);
 
-			arc_center.set(bracer_offset + 2 * (finger_width + distanceBtwFingers) + finger_width / 2, bracer_width + pPlateForm->ui.lineEdit_RingFinger->text().toDouble(), 0.0);
+			NcDbCircle* pCircleToAdd = new NcDbCircle(fingerJointCenter, NcGeVector3d(0, 0, 1), finger_width / 2);
 
-			AcDbArc* pArc_ring = new AcDbArc(arc_center, finger_width / 2, 0, 6.28318530717958647692 / 2);
+			NcDb3dSolid* pCylinderToAdd = cylinderExtrude(pBlock, pCircleToAdd, cylinder_height);
 
-			pointCurrent.set(bracer_offset + 2 * (finger_width + distanceBtwFingers) + finger_width, bracer_width, 0.0);
+			pBlock->appendNcDbEntity(pCylinderToAdd);
 
-			plateContour.append(pLine_temp);
-			plateContour.append(pLine1_ring);
-			plateContour.append(pArc_ring);
-			plateContour.append(pLine2_ring);
+			pPlateSolid->booleanOper(NcDb::BoolOperType::kBoolUnite, pCylinderToAdd);
+
+			NcDbCircle* pCircleToCut = new NcDbCircle(fingerJointCenter, NcGeVector3d(0, 0, 1), hole / 2);
+
+			NcDb3dSolid* pCylinderToCut = cylinderExtrude(pBlock, pCircleToCut, cylinder_height);
+
+			pBlock->appendNcDbEntity(pCylinderToCut);
+
+			pPlateSolid->booleanOper(NcDb::BoolOperType::kBoolSubtract, pCylinderToCut);
+
+			pCylinderToCut->close();
+			pCylinderToAdd->close();
+
 		}
 
 		if (pPlateForm->ui.checkBox_Pinky->isChecked()) {
 
-			AcDbLine* pLine_temp = new AcDbLine(pointCurrent, *(new AcGePoint3d(bracer_offset + 3 * (finger_width + distanceBtwFingers), bracer_width, 0.0)));
+			fingerJointCenter.set(bracer_offset + finger_width / 2 + 3 * distanceBtwJoints, bracer_width + pPlateForm->ui.lineEdit_Pinky->text().toDouble(), 0);
 
-			AcDbLine* pLine1_pinky = new AcDbLine(*(new AcGePoint3d(bracer_offset + 3 * (finger_width + distanceBtwFingers), bracer_width, 0.0)), *(new AcGePoint3d(bracer_offset + 3 * (finger_width + distanceBtwFingers), bracer_width + pPlateForm->ui.lineEdit_Pinky->text().toDouble(), 0)));
-			AcDbLine* pLine2_pinky = new AcDbLine(*(new AcGePoint3d(bracer_offset + 3 * (finger_width + distanceBtwFingers) + finger_width, bracer_width, 0.0)), *(new AcGePoint3d(bracer_offset + 3 * (finger_width + distanceBtwFingers) + finger_width, bracer_width + pPlateForm->ui.lineEdit_Pinky->text().toDouble(), 0)));
+			NcDb3dSolid* pFingerSolid = rectangleExtrude(pBlock, NcGePoint3d(bracer_offset + 3 * distanceBtwJoints, bracer_width, 0), pPlateForm->ui.lineEdit_Pinky->text().toDouble(), finger_width, plate_thickness);
+			pPlateSolid->booleanOper(NcDb::BoolOperType::kBoolUnite, pFingerSolid);
 
-			arc_center.set(bracer_offset + 3 * (finger_width + distanceBtwFingers) + finger_width / 2, bracer_width + pPlateForm->ui.lineEdit_Pinky->text().toDouble(), 0.0);
+			NcDbCircle* pCircleToAdd = new NcDbCircle(fingerJointCenter, NcGeVector3d(0, 0, 1), finger_width / 2);
 
-			AcDbArc* pArc_pinky = new AcDbArc(arc_center, finger_width / 2, 0, 6.28318530717958647692 / 2);
-			
-			pointCurrent.set(bracer_offset + 3 * (finger_width + distanceBtwFingers) + finger_width, bracer_width, 0.0);
+			NcDb3dSolid* pCylinderToAdd = cylinderExtrude(pBlock, pCircleToAdd, cylinder_height);
 
-			plateContour.append(pLine_temp);
-			plateContour.append(pLine1_pinky);
-			plateContour.append(pArc_pinky);
-			plateContour.append(pLine2_pinky);
+			pBlock->appendNcDbEntity(pCylinderToAdd);
+
+			pPlateSolid->booleanOper(NcDb::BoolOperType::kBoolUnite, pCylinderToAdd);
+
+			NcDbCircle* pCircleToCut = new NcDbCircle(fingerJointCenter, NcGeVector3d(0, 0, 1), hole / 2);
+
+			NcDb3dSolid* pCylinderToCut = cylinderExtrude(pBlock, pCircleToCut, cylinder_height);
+
+			pBlock->appendNcDbEntity(pCylinderToCut);
+
+			pPlateSolid->booleanOper(NcDb::BoolOperType::kBoolSubtract, pCylinderToCut);
+
+			pCylinderToCut->close();
+			pCylinderToAdd->close();
 		}
-
-		AcDbLine* pLine_2 = new AcDbLine(pointCurrent, *(new AcGePoint3d(bracer_length, bracer_width, 0)));
-
-		plateContour.append(pLine_2);
-
-		AcDbLine* pLine_3 = new AcDbLine(*(new AcGePoint3d(bracer_length, 0, 0)), *(new AcGePoint3d(bracer_length, bracer_width, 0)));
-		AcDbLine* pLine_4 = new AcDbLine(*(new AcGePoint3d(bracer_length, 0, 0)), *(new AcGePoint3d(0, 0, 0)));
-
-		plateContour.append(pLine_3);
-		plateContour.append(pLine_4);
-
-		AcDbVoidPtrArray plateRegion1;
-
-		//////////////////////////////
-
-		AcDbVoidPtrArray Regions;
-
-		NcDbRegion::createFromCurves(plateContour, Regions);
-
-
-		AcDbRegion* pRegion_plate = static_cast<NcDbRegion*>(Regions[0]);
-
-		AcDbObjectId RegionId;
-
-		pBlock->appendAcDbEntity(RegionId, pRegion_plate);
-
-		NRX::Boolean subents = true;
-
-		pRegion_plate->setVisibility(pRegion_plate->visibility(), subents);
-
-
-		//Create solid 
-
-		double height = 5;
-		double taperAngle = 0.0;
-
-		NcDb3dSolid* pSolid_plate = new NcDb3dSolid();
-
-		pSolid_plate->extrude(pRegion_plate, height, taperAngle);
-
-
-		if (pPlateForm->ui.checkBox_Index->isChecked()) {
-			
-			NcGePoint3d center_index(bracer_offset + finger_width / 2, bracer_width + pPlateForm->ui.lineEdit_IndexFinger->text().toDouble(), 0.0);
-
-			AcDbCircle* pCircle = new AcDbCircle(center_index, *(new NcGeVector3d(0, 0, 1)), finger_width / 2);
-
-			NcDbVoidPtrArray cylinderContour;
-
-			cylinderContour.append(pCircle);
-
-			AcDbVoidPtrArray Regions;
-
-			NcDbRegion::createFromCurves(cylinderContour, Regions);
-
-			AcDbRegion* pRegion_circle = static_cast<NcDbRegion*>(Regions[0]);
-
-			AcDbObjectId RegionCircleId;
-
-			pBlock->appendAcDbEntity(RegionCircleId, pRegion_circle);
-
-			NcDb3dSolid* pCylinder = new NcDb3dSolid();
-			pCylinder->extrude(pRegion_circle, 8, 0);
-
-			AcDbObjectId CylinderId;
-
-			pBlock->appendNcDbEntity(CylinderId, pCylinder);
-
-			pSolid_plate->booleanOper(NcDb::BoolOperType::kBoolUnite, pCylinder);
-
-
-			AcDbCircle* pHole = new AcDbCircle(center_index, *(new NcGeVector3d(0, 0, 1)), 5);
-
-			NcDbVoidPtrArray HoleContour;
-
-			HoleContour.append(pHole);
-
-			AcDbVoidPtrArray HoleRegions;
-
-			NcDbRegion::createFromCurves(HoleContour, HoleRegions);
-
-			AcDbRegion* pRegion_circleHole = static_cast<NcDbRegion*>(HoleRegions[0]);
-
-			AcDbObjectId RegionHoleCircleId;
-
-			pBlock->appendAcDbEntity(RegionHoleCircleId, pRegion_circleHole);
-
-
-			NcDb3dSolid* pCylinderHole = new NcDb3dSolid();
-			pCylinderHole->extrude(pRegion_circleHole, 8, 0);
-
-			AcDbObjectId HoleId;
-
-			pBlock->appendNcDbEntity(HoleId, pCylinderHole);
-
-
-			pSolid_plate->booleanOper(NcDb::BoolOperType::kBoolSubtract, pCylinderHole);
-
-			pCylinderHole->close();
-			pCylinder->close();
-		}
-
-		if (pPlateForm->ui.checkBox_middle->isChecked()) {
-
-			NcGePoint3d center_middle(bracer_offset + (finger_width + distanceBtwFingers) + finger_width / 2, bracer_width + pPlateForm->ui.lineEdit_MiddleFinger->text().toDouble(), 0.0);
-
-			AcDbCircle* pCircle = new AcDbCircle(center_middle, *(new NcGeVector3d(0, 0, 1)), finger_width / 2);
-
-			NcDbVoidPtrArray cylinderContour;
-
-			cylinderContour.append(pCircle);
-
-			AcDbVoidPtrArray Regions;
-
-			NcDbRegion::createFromCurves(cylinderContour, Regions);
-
-			AcDbRegion* pRegion_circle = static_cast<NcDbRegion*>(Regions[0]);
-
-			AcDbObjectId RegionCircleId;
-
-			pBlock->appendAcDbEntity(RegionCircleId, pRegion_circle);
-
-			NcDb3dSolid* pCylinder = new NcDb3dSolid();
-			pCylinder->extrude(pRegion_circle, 8, 0);
-
-			AcDbObjectId CylinderId;
-
-			pBlock->appendNcDbEntity(CylinderId, pCylinder);
-
-			pSolid_plate->booleanOper(NcDb::BoolOperType::kBoolUnite, pCylinder);
-
-
-			AcDbCircle* pHole = new AcDbCircle(center_middle, *(new NcGeVector3d(0, 0, 1)), 5);
-
-			NcDbVoidPtrArray HoleContour;
-
-			HoleContour.append(pHole);
-
-			AcDbVoidPtrArray HoleRegions;
-
-			NcDbRegion::createFromCurves(HoleContour, HoleRegions);
-
-			AcDbRegion* pRegion_circleHole = static_cast<NcDbRegion*>(HoleRegions[0]);
-
-			AcDbObjectId RegionHoleCircleId;
-
-			pBlock->appendAcDbEntity(RegionHoleCircleId, pRegion_circleHole);
-
-
-			NcDb3dSolid* pCylinderHole = new NcDb3dSolid();
-			pCylinderHole->extrude(pRegion_circleHole, 8, 0);
-
-			AcDbObjectId HoleId;
-
-			pBlock->appendNcDbEntity(HoleId, pCylinderHole);
-
-
-			pSolid_plate->booleanOper(NcDb::BoolOperType::kBoolSubtract, pCylinderHole);
-
-			pCylinderHole->close();
-			pCylinder->close();
-		}
-
-		if (pPlateForm->ui.checkBox_Ring->isChecked()) {
-
-			NcGePoint3d center_Ring(bracer_offset + 2 * (finger_width + distanceBtwFingers) + finger_width / 2, bracer_width + pPlateForm->ui.lineEdit_RingFinger->text().toDouble(), 0.0);
-
-			AcDbCircle* pCircle = new AcDbCircle(center_Ring, *(new NcGeVector3d(0, 0, 1)), finger_width / 2);
-
-			NcDbVoidPtrArray cylinderContour;
-
-			cylinderContour.append(pCircle);
-
-			AcDbVoidPtrArray Regions;
-
-			NcDbRegion::createFromCurves(cylinderContour, Regions);
-
-			AcDbRegion* pRegion_circle = static_cast<NcDbRegion*>(Regions[0]);
-
-			AcDbObjectId RegionCircleId;
-
-			pBlock->appendAcDbEntity(RegionCircleId, pRegion_circle);
-
-			NcDb3dSolid* pCylinder = new NcDb3dSolid();
-			pCylinder->extrude(pRegion_circle, 8, 0);
-
-			AcDbObjectId CylinderId;
-
-			pBlock->appendNcDbEntity(CylinderId, pCylinder);
-
-			pSolid_plate->booleanOper(NcDb::BoolOperType::kBoolUnite, pCylinder);
-
-
-			AcDbCircle* pHole = new AcDbCircle(center_Ring, *(new NcGeVector3d(0, 0, 1)), 5);
-
-			NcDbVoidPtrArray HoleContour;
-
-			HoleContour.append(pHole);
-
-			AcDbVoidPtrArray HoleRegions;
-
-			NcDbRegion::createFromCurves(HoleContour, HoleRegions);
-
-			AcDbRegion* pRegion_circleHole = static_cast<NcDbRegion*>(HoleRegions[0]);
-
-			AcDbObjectId RegionHoleCircleId;
-
-			pBlock->appendAcDbEntity(RegionHoleCircleId, pRegion_circleHole);
-
-
-			NcDb3dSolid* pCylinderHole = new NcDb3dSolid();
-			pCylinderHole->extrude(pRegion_circleHole, 8, 0);
-
-			AcDbObjectId HoleId;
-
-			pBlock->appendNcDbEntity(HoleId, pCylinderHole);
-
-
-			pSolid_plate->booleanOper(NcDb::BoolOperType::kBoolSubtract, pCylinderHole);
-
-			pCylinderHole->close();
-			pCylinder->close();
-		}
-
-		if (pPlateForm->ui.checkBox_Pinky->isChecked()) {
-
-			NcGePoint3d center_Pinky(bracer_offset + 3 * (finger_width + distanceBtwFingers) + finger_width / 2, bracer_width + pPlateForm->ui.lineEdit_Pinky->text().toDouble(), 0.0);
-
-			AcDbCircle* pCircle = new AcDbCircle(center_Pinky, *(new NcGeVector3d(0, 0, 1)), finger_width / 2);
-
-			NcDbVoidPtrArray cylinderContour;
-
-			cylinderContour.append(pCircle);
-
-			AcDbVoidPtrArray Regions;
-
-			NcDbRegion::createFromCurves(cylinderContour, Regions);
-
-			AcDbRegion* pRegion_circle = static_cast<NcDbRegion*>(Regions[0]);
-
-			AcDbObjectId RegionCircleId;
-
-			pBlock->appendAcDbEntity(RegionCircleId, pRegion_circle);
-
-			NcDb3dSolid* pCylinder = new NcDb3dSolid();
-			pCylinder->extrude(pRegion_circle, 8, 0);
-
-			AcDbObjectId CylinderId;
-
-			pBlock->appendNcDbEntity(CylinderId, pCylinder);
-
-			pSolid_plate->booleanOper(NcDb::BoolOperType::kBoolUnite, pCylinder);
-
-
-			AcDbCircle* pHole = new AcDbCircle(center_Pinky, *(new NcGeVector3d(0, 0, 1)), 5);
-
-			NcDbVoidPtrArray HoleContour;
-
-			HoleContour.append(pHole);
-
-			AcDbVoidPtrArray HoleRegions;
-
-			NcDbRegion::createFromCurves(HoleContour, HoleRegions);
-
-			AcDbRegion* pRegion_circleHole = static_cast<NcDbRegion*>(HoleRegions[0]);
-
-			AcDbObjectId RegionHoleCircleId;
-
-			pBlock->appendAcDbEntity(RegionHoleCircleId, pRegion_circleHole);
-
-
-			NcDb3dSolid* pCylinderHole = new NcDb3dSolid();
-			pCylinderHole->extrude(pRegion_circleHole, 8, 0);
-
-			AcDbObjectId HoleId;
-
-			pBlock->appendNcDbEntity(HoleId, pCylinderHole);
-
-
-			pSolid_plate->booleanOper(NcDb::BoolOperType::kBoolSubtract, pCylinderHole);
-
-			pCylinderHole->close();
-			pCylinder->close();
-		}
-
-		AcDb3dPolyline* pSlot1 = new AcDb3dPolyline();
 
 		double slotOffset_thickness = 4;
 		double slot_width = 3;
 
-		pSlot1->appendVertex(new AcDb3dPolylineVertex(*(new AcGePoint3d(slotOffset_thickness, slotOffset_thickness, 0))));
-		pSlot1->appendVertex(new AcDb3dPolylineVertex(*(new AcGePoint3d(slotOffset_thickness, bracer_width - slotOffset_thickness, 0))));
-		pSlot1->appendVertex(new AcDb3dPolylineVertex(*(new AcGePoint3d(slotOffset_thickness + slot_width, bracer_width - slotOffset_thickness, 0))));
-		pSlot1->appendVertex(new AcDb3dPolylineVertex(*(new AcGePoint3d(slotOffset_thickness + slot_width, slotOffset_thickness, 0))));
 
-		pSlot1->makeClosed();
+		NcDb3dSolid* pSlotLeft = rectangleExtrude(pBlock, NcGePoint3d(slotOffset_thickness, slotOffset_thickness, 0), bracer_width - slotOffset_thickness * 2, slot_width, plate_thickness);
 
-		AcDb3dPolyline* pSlot2 = new AcDb3dPolyline();
-
-		pSlot2->appendVertex(new AcDb3dPolylineVertex(*(new AcGePoint3d(bracer_length - slotOffset_thickness, slotOffset_thickness, 0))));
-		pSlot2->appendVertex(new AcDb3dPolylineVertex(*(new AcGePoint3d(bracer_length - slotOffset_thickness, bracer_width - slotOffset_thickness, 0))));
-		pSlot2->appendVertex(new AcDb3dPolylineVertex(*(new AcGePoint3d(bracer_length - slotOffset_thickness - slot_width, bracer_width - slotOffset_thickness, 0))));
-		pSlot2->appendVertex(new AcDb3dPolylineVertex(*(new AcGePoint3d(bracer_length - slotOffset_thickness - slot_width, slotOffset_thickness, 0))));
-
-		pSlot2->makeClosed();
-
-		NcDbVoidPtrArray slotContour;
-
-		slotContour.append(pSlot1);
-		slotContour.append(pSlot2);
-
-		AcDbVoidPtrArray slotRegions;
-
-		NcDbRegion::createFromCurves(slotContour, slotRegions);
-
-		AcDbRegion* pRegion_slot1 = static_cast<NcDbRegion*>(slotRegions[0]);
-
-		AcDbObjectId RegionSlot1Id;
-
-		pBlock->appendAcDbEntity(RegionSlot1Id, pRegion_slot1);
+		pPlateSolid->booleanOper(NcDb::BoolOperType::kBoolSubtract, pSlotLeft);
 
 
-		NcDb3dSolid* pSolidSlot1 = new NcDb3dSolid();
-		pSolidSlot1->extrude(pRegion_slot1, 8, 0);
+		NcDb3dSolid* pSlotRight = rectangleExtrude(pBlock, NcGePoint3d(bracer_length - slotOffset_thickness - slot_width, slotOffset_thickness, 0), bracer_width - slotOffset_thickness * 2, slot_width, plate_thickness);
 
-		AcDbObjectId SlotId;
+		pPlateSolid->booleanOper(NcDb::BoolOperType::kBoolSubtract, pSlotRight);
 
-		pBlock->appendNcDbEntity(SlotId, pSolidSlot1);
+		//const NcArray< NcDbSubentId* >& edgeSubentIds;
+		//const NcGeDoubleArray& radius;
+		//const NcGeDoubleArray& startSetback;
+		//const NcGeDoubleArray& endSetback;
 
-
-		pSolid_plate->booleanOper(NcDb::BoolOperType::kBoolSubtract, pSolidSlot1);
-
-
-		AcDbRegion* pRegion_slot2 = static_cast<NcDbRegion*>(slotRegions[1]);
-
-		AcDbObjectId RegionSlot2Id;
-
-		pBlock->appendAcDbEntity(RegionSlot2Id, pRegion_slot2);
-
-
-		NcDb3dSolid* pSolidSlot2 = new NcDb3dSolid();
-		pSolidSlot2->extrude(pRegion_slot2, 8, 0);
-
-		AcDbObjectId Slot2Id;
-
-		pBlock->appendNcDbEntity(Slot2Id, pSolidSlot2);
-
-
-		pSolid_plate->booleanOper(NcDb::BoolOperType::kBoolSubtract, pSolidSlot2);
-
-
-
-
-		AcDbObjectId Solid_PlateId;
-
-		pBlock->appendAcDbEntity(Solid_PlateId, pSolid_plate);
+		pBlock->appendAcDbEntity(pPlateSolid);
 
 		////////
 
-		pRegion_plate->close();
-		pSolid_plate->close();
+		pPlateSolid->close();
 		pBlock->close();
 
 		acutPrintf(L"\nПлатформа успешно построена!\n");
@@ -799,8 +561,6 @@ void FingerProsthetic_Plate() {
 		});
 
 		pPlateForm->exec();
-
-	
 }
 
 void initApp() {
