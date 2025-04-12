@@ -14,9 +14,8 @@ public:
 	~RingForm();
 	double inner_diam = 0;
 	Ui::RingFormClass ui;
-	nds_real inner_diameter;
+
 signals:
 
 public slots:
-	void on_CreateBtn_clicked();
 };

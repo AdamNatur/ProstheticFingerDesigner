@@ -20,15 +20,8 @@ RingForm::RingForm(QWidget *parent)
 
     ui.label_Picture->setPixmap(pix);
 
-    inner_diameter = ui.lineEdit->text().toDouble();
-
     connect(this->ui.Create_pushBtn, &QPushButton::clicked, [&]() {});
 
-}
-
-void RingForm::on_CreateBtn_clicked() {
-    inner_diameter = ui.lineEdit->text().toDouble();
-    close();
 }
 
 RingForm::~RingForm()

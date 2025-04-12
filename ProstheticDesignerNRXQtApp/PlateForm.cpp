@@ -10,6 +10,11 @@ PlateForm::PlateForm(QWidget *parent)
 	ui.lineEdit_RingFinger->setDisabled(true);
 	ui.lineEdit_MiddleFinger->setDisabled(true);
 	ui.lineEdit_Pinky->setDisabled(true);
+
+	QObject::connect(this->ui.checkBox_Index, &QCheckBox::stateChanged, this, &PlateForm::checkBoxIndexFinger);
+	QObject::connect(this->ui.checkBox_middle, &QCheckBox::stateChanged, this, &PlateForm::checkBoxMiddleFinger);
+	QObject::connect(this->ui.checkBox_Ring, &QCheckBox::stateChanged, this, &PlateForm::checkBoxRingFinger);
+	QObject::connect(this->ui.checkBox_Pinky, &QCheckBox::stateChanged, this, &PlateForm::checkBoxPinky);
 }
 
 PlateForm::~PlateForm()

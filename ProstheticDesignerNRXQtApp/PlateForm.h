@@ -24,4 +24,6 @@ public:
 	void checkBoxMiddleFinger();
 	void checkBoxRingFinger();
 	void checkBoxPinky();
+
+
 };

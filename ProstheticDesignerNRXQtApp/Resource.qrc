@@ -1,10 +1,14 @@
 <RCC>
-  <qresource prefix="/new/prefix1">
-    <file>Qt/Media/Plates/1-Finger.jpg</file>
-    <file>Qt/Media/Plates/2-Finger.jpg</file>
-    <file>Qt/Media/Plates/3-Finger.jpg</file>
-    <file>Qt/Media/Plates/4-Finger.jpg</file>
-    <file>Qt/Media/Ring.jpg</file>
-    <file>Qt/Media/Mechanism.jpg</file>
-  </qresource>
+    <qresource prefix="/new/prefix1">
+        <file>Qt/Media/Plates/1-Finger.jpg</file>
+        <file>Qt/Media/Plates/2-Finger.jpg</file>
+        <file>Qt/Media/Plates/3-Finger.jpg</file>
+        <file>Qt/Media/Plates/4-Finger.jpg</file>
+        <file>Qt/Media/Ring.jpg</file>
+        <file>Qt/Media/Mechanism.jpg</file>
+        <file>Qt/Media/Prosthetic Configurations/1-finger.jpg</file>
+        <file>Qt/Media/Prosthetic Configurations/2-finger.jpg</file>
+        <file>Qt/Media/Prosthetic Configurations/3-finger.jpg</file>
+        <file>Qt/Media/Prosthetic Configurations/4-finger.jpg</file>
+    </qresource>
 </RCC>

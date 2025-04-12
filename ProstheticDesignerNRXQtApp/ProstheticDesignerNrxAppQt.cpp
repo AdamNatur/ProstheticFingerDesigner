@@ -21,6 +21,7 @@
 
 #include "hostQtUi.h"
 #include "qwinwidget.h"
+#include "MainForm.h"
 #include "RingForm.h"
 #include "MechanismForm.h"
 #include "PlateForm.h"
@@ -103,21 +104,27 @@ NcDb3dSolid* cylinderExtrude(AcDbBlockTableRecord* pBlock, NcGePoint3d point, Nc
 
 NcDb3dSolid* slotExtrude(AcDbBlockTableRecord* pBlock, NcGePoint3d startPoint, double centerDist, double radius, double orientAngle, NcGeVector3d vector, double height) {
 
-	NcDb3dSolid* pSlot = cylinderExtrude(pBlock, startPoint, vector, radius, height);
+	NcDb3dSolid* pSlot = cylinderExtrude(pBlock, NcGePoint3d(0,0,0), vector, radius, height);
 
-	NcDb3dSolid* pRect = rectangleExtrude(pBlock, NcGePoint3d(startPoint.x, startPoint.y - radius, startPoint.z), 2 * radius, centerDist, height);
+	NcDb3dSolid* pRect = rectangleExtrude(pBlock, NcGePoint3d(0, -radius, 0), 2 * radius, centerDist, height);
 
 	pSlot->booleanOper(NcDb::kBoolUnite, pRect);
 
-	NcDb3dSolid* pCylinder = cylinderExtrude(pBlock, NcGePoint3d(startPoint.x + centerDist, startPoint.y, startPoint.z), vector, radius, height);
+	NcDb3dSolid* pCylinder = cylinderExtrude(pBlock, NcGePoint3d(centerDist, 0, 0), vector, radius, height);
 
 	pSlot->booleanOper(NcDb::kBoolUnite, pCylinder);
 
-	NcGeMatrix3d* rotateMatrix = new NcGeMatrix3d();
+	NcGeMatrix3d* rotateMatrixRotate = new NcGeMatrix3d();
 
-	rotateMatrix->setToRotation(orientAngle, vector, NcGePoint3d(startPoint));
+	rotateMatrixRotate->setToRotation(orientAngle, vector, NcGePoint3d(0,0,0));
 
-	pSlot->transformBy(*rotateMatrix);
+	pSlot->transformBy(*rotateMatrixRotate);
+
+	NcGeMatrix3d* rotateMatrixMove = new NcGeMatrix3d();
+
+	rotateMatrixMove->setToTranslation(NcGeVector3d(startPoint.x, startPoint.y, startPoint.z));
+
+	pSlot->transformBy(*rotateMatrixMove);
 
 	pBlock->appendNcDbEntity(pSlot);
 
@@ -235,45 +242,41 @@ void createBase(AcDbBlockTableRecord* pBlock, double base_angle, double base_len
 	pBase->close();
 }
 
-NcDb3dSolid* createLink(AcDbBlockTableRecord* pBlock, NcGePoint3d startPoint, double center_dist, double radius, double angle, double hole_diam, double thickness) {
+NcDb3dSolid* createLink(AcDbBlockTableRecord* pBlock, NcGePoint3d startPoint, double centerDist, double radius, double hole_radius, double orientAngle, NcGeVector3d vector, double height) {
 
-	NcDb3dSolid* pLink = slotExtrude(pBlock, startPoint, center_dist, radius, angle, NcGeVector3d(0,0,-1), thickness);
+	NcDb3dSolid* pSlot = cylinderExtrude(pBlock, NcGePoint3d(0, 0, 0), vector, radius, height);
 
-	NcDb3dSolid* pHole1 = cylinderExtrude(pBlock, startPoint, NcGeVector3d(0, 0, 1), hole_diam / 2, thickness);
+	NcDb3dSolid* pRect = rectangleExtrude(pBlock, NcGePoint3d(0, -radius, 0), 2 * radius, centerDist, height);
 
-	pLink->booleanOper(NcDb::kBoolSubtract, pHole1);
+	pSlot->booleanOper(NcDb::kBoolUnite, pRect);
 
-	NcGePoint3d endPoint(startPoint.x + center_dist * cos(angle), startPoint.x + center_dist * sin(angle), 0);
+	NcDb3dSolid* pHole1 = cylinderExtrude(pBlock, NcGePoint3d(0, 0, 0), vector, hole_radius, height);
 
-	NcDb3dSolid* pHole2 = cylinderExtrude(pBlock, endPoint, NcGeVector3d(0, 0, 1), hole_diam / 2, thickness);
+	pSlot->booleanOper(NcDb::kBoolSubtract, pHole1);
 
-	pLink->booleanOper(NcDb::kBoolSubtract, pHole2);
+	NcDb3dSolid* pCylinder = cylinderExtrude(pBlock, NcGePoint3d(centerDist, 0, 0), vector, radius, height);
 
-	pBlock->appendNcDbEntity(pLink);
+	pSlot->booleanOper(NcDb::kBoolUnite, pCylinder);
 
-	return pLink;
-}
+	NcDb3dSolid* pHole2 = cylinderExtrude(pBlock, NcGePoint3d(centerDist, 0, 0), vector, hole_radius, height);
 
-void createLinkWithSlot(AcDbBlockTableRecord* pBlock, NcGePoint3d startPoint, double center_dist, double radius, double angle, double hole_diam, double slot_offset, double thickness) {
+	pSlot->booleanOper(NcDb::kBoolSubtract, pHole2);
 
-	NcDb3dSolid* pLinkSlot = createLink(pBlock, startPoint, center_dist, radius, 0, radius, thickness);
+	NcGeMatrix3d* rotateMatrixRotate = new NcGeMatrix3d();
 
-	double rectSlot_length = 15;
-	double rectSlot_width = 6;
+	rotateMatrixRotate->setToRotation(orientAngle, vector, NcGePoint3d(0, 0, 0));
 
-	double slot_Length = 10;
+	pSlot->transformBy(*rotateMatrixRotate);
 
-	NcDb3dSolid* rectSlot = rectangleExtrude(pBlock, NcGePoint3d(slot_offset, -radius, -rectSlot_width / 2), 2 * radius, rectSlot_length, rectSlot_width);
+	NcGeMatrix3d* rotateMatrixMove = new NcGeMatrix3d();
 
-	pLinkSlot->booleanOper(NcDb::kBoolUnite, rectSlot);
+	rotateMatrixMove->setToTranslation(NcGeVector3d(startPoint.x, startPoint.y, startPoint.z));
 
-	NcDb3dSolid* pSlot = slotExtrude(pBlock, NcGePoint3d(startPoint.x + slot_offset + rectSlot_length / 2 - slot_Length / 2, radius, 0), slot_Length, 3.0 / 2, 0, NcGeVector3d(0,1,0), -rectSlot_width);
+	pSlot->transformBy(*rotateMatrixMove);
 
-	pLinkSlot->booleanOper(NcDb::kBoolSubtract, pSlot);
+	pBlock->appendNcDbEntity(pSlot);
 
-	pBlock->appendNcDbEntity(pLinkSlot);
-
-	pLinkSlot->close();
+	return pSlot;
 }
 
 void addToModelSpace(AcDbObjectId& objId, AcDbEntity* pEntity)
@@ -303,26 +306,228 @@ void FingerProsthetic_Mechanism() {
 		pBlockTable->close();
 
 	
+		//double base_angle = 60;
+		//double initial_angle = 21;
+		//double base_length = (pMechanismForm->ui.lineEdit_baseLength->text()).toDouble(); // default = 8
+		//double r2_length = (pMechanismForm->ui.lineEdit_r2Length->text()).toDouble(); //default = 71.56;
+		//double r2_hand_length = (pMechanismForm->ui.lineEdit_r2HandLength->text()).toDouble(); //default = 8;
+		//double r3_length = (pMechanismForm->ui.lineEdit_r3Length->text()).toDouble(); // default = 74.12;
+		//double middle_hand_length = (pMechanismForm->ui.lineEdit_middleHandLength->text()).toDouble(); //default = 7.5;
+		//double middle_base_length = (pMechanismForm->ui.lineEdit_middleBaseLength->text()).toDouble(); //default = 17;
+		//double distal_length = (pMechanismForm->ui.lineEdit_distalLength->text()).toDouble(); //default = 7
+		//double middle_angle = 32;
+		//double r2_angle = 103.71;
+
 		double base_angle = 60;
-		double initial_angle = 5;
-		double base_length = (pMechanismForm->ui.lineEdit_baseLength->text()).toDouble(); // default = 8
-		double r2_length = (pMechanismForm->ui.lineEdit_r2Length->text()).toDouble(); //default = 71.56;
-		double r2_hand_length = (pMechanismForm->ui.lineEdit_r2HandLength->text()).toDouble(); //default = 8;
-		double r3_length = (pMechanismForm->ui.lineEdit_r3Length->text()).toDouble(); // default = 74.12;
-		double middle_hand_length = (pMechanismForm->ui.lineEdit_middleHandLength->text()).toDouble(); //default = 7.5;
-		double middle_base_length = (pMechanismForm->ui.lineEdit_middleBaseLength->text()).toDouble(); //default = 17;
-		double distal_length = (pMechanismForm->ui.lineEdit_distalLength->text()).toDouble(); //default = 7
-		double middle_angle = 85;
+		double initial_angle = 21;
+		double base_length = 8; // default = 8
+		double r2_length = 71.56; //default = 71.56;
+		double r2_hand_length = 8; //default = 8;
+		double r3_length = 74.12; // default = 74.12;
+		double middle_hand_length = 7.5; //default = 7.5;
+		double middle_base_length = 17; //default = 17;
+		double distal_length = 7; //default = 7
+		double middle_angle = 32;
+		double r2_angle = 103.71;
 
-		//createBase(pBlock, base_angle / 180.0 * PI, 8);
 
-		/*NcDb3dSolid *pTest = */
+		/*NcGePoint3d origin(12, 3, 0);
+		NcGePoint3d point_A(origin.x + base_length * cos(base_angle * PI / 180), origin.y + base_length * sin(base_angle * PI / 180), 0);
+		NcGePoint3d point_I(r2_length * cos(initial_angle * PI / 180), -r2_length * sin(initial_angle * PI / 180), 0);
+		NcGePoint3d point_D(r2_length * cos(initial_angle * PI / 180) + 0.5, -r2_length * sin(initial_angle * PI / 180) - r2_hand_length, 0);
+		NcGePoint3d point_C(r2_length * cos(initial_angle * PI / 180), -r2_length * sin(initial_angle * PI / 180) - middle_hand_length, 0);
+		NcGePoint3d point_G(r2_length * cos(initial_angle * PI / 180) + middle_base_length, -r2_length * sin(initial_angle * PI / 180) - middle_hand_length, 0);
+		NcGePoint3d point_F(r2_length * cos(initial_angle * PI / 180) + middle_base_length + 0.5, -r2_length * sin(initial_angle * PI / 180) - middle_hand_length + distal_length, 0);*/
 
-		midPhalanx_base(pBlock, NcGePoint3d(0, 8, -2), 8, 14, 4, 4);
 
-		//pBlock->appendNcDbEntity(pTest);
+		NcGePoint3d point_H(63, 10.5, 0);
+		NcGePoint3d point_A(67, 17.428203, 0);
+		NcGePoint3d point_I(126.720983, -22.067388, 0);
+		NcGePoint3d point_D(124.872386, -29.850876, 0);
+		NcGePoint3d point_C(124.576954, -29.2544, 0);
+		NcGePoint3d point_G(141.229084, -32.675889, 0);
+		NcGePoint3d point_F(141.200273, -25.675948, 0);
 
-		//pTest->close();
+
+		//// Creating base part
+
+		double main_width = 16;
+		double main_offset = 4;
+		double main_thickness = 3;
+		double cylinder_diam = 6;
+		double offset = 4.5;
+		double thickness = 3;
+		double leftCut_depth = 3.5;
+
+		double functional_dist = 10;
+
+		double counterbore_diam = 14;
+		double counterbore_depth = 2.5;
+
+		double centralHole_diam = 12;
+		double functionalHole_diam = 3;
+
+
+		NcDb3dSolid* pBase = rectangleExtrude(pBlock, NcGePoint3d(point_H.x - main_width - main_offset, point_H.y - main_thickness, -main_width / 2), main_thickness, main_width + main_offset, main_width);
+
+		NcDb3dSolid* pStartCylinder = cylinderExtrude(pBlock, NcGePoint3d(point_H.x, point_H.y, -main_width / 2), NcGeVector3d(0, 0, 1), cylinder_diam / 2, main_width);
+
+		pBase->booleanOper(NcDb::kBoolUnite, pStartCylinder);
+
+		NcDb3dSolid* pSlot = slotExtrude(pBlock, NcGePoint3d(point_H.x, point_H.y, - offset), base_length, cylinder_diam / 2, base_angle * PI / 180, NcGeVector3d(0, 0, 1), thickness);
+
+		pBase->booleanOper(NcDb::kBoolUnite, pSlot);
+
+		NcDb3dSolid* pCutLeft = rectangleExtrude(pBlock, NcGePoint3d(point_H.x - cylinder_diam / 2  - 1, point_H.y - main_thickness, main_width / 2), cylinder_diam, main_offset + cylinder_diam, -leftCut_depth);
+
+		pBase->booleanOper(NcDb::kBoolSubtract, pCutLeft);
+
+		NcDb3dSolid* pCutRight = rectangleExtrude(pBlock, NcGePoint3d(point_H.x - cylinder_diam / 2 - 1, point_H.y - main_thickness, -main_width / 2), cylinder_diam, main_offset + cylinder_diam, main_width - leftCut_depth - functional_dist);
+
+		pBase->booleanOper(NcDb::kBoolSubtract, pCutRight);
+
+		NcDb3dSolid* pCounterbore = cylinderExtrude(pBlock, NcGePoint3d(point_H.x - main_width / 2 - main_offset, point_H.y, 0), NcGeVector3d(0, 1, 0), counterbore_diam / 2, -counterbore_depth);
+		pBase->booleanOper(NcDb::kBoolSubtract, pCounterbore);
+
+		NcDb3dSolid* pCentralHole = cylinderExtrude(pBlock, NcGePoint3d(point_H.x - main_width / 2 - main_offset, point_H.y, 0), NcGeVector3d(0, 1, 0), centralHole_diam / 2, -thickness);
+		pBase->booleanOper(NcDb::kBoolSubtract, pCentralHole);
+
+		NcDb3dSolid* pHoleDown = cylinderExtrude(pBlock, NcGePoint3d(point_H.x, point_H.y, -main_width / 2), NcGeVector3d(0, 0, 1), functionalHole_diam / 2, main_width);
+		pBase->booleanOper(NcDb::kBoolSubtract, pHoleDown);
+
+		NcDb3dSolid* pHoleUp = cylinderExtrude(pBlock, NcGePoint3d(point_H.x + base_length * cos(base_angle * PI / 180), point_H.y + base_length * sin(base_angle * PI / 180), -main_width / 2), NcGeVector3d(0, 0, 1), functionalHole_diam / 2, main_width);
+		pBase->booleanOper(NcDb::kBoolSubtract, pHoleUp);
+
+		pBlock->appendNcDbEntity(pBase);
+
+		pBase->close();
+
+		////////////////////////////////////////////////////////////////////////////////
+
+
+		//// Creating link
+
+		NcDb3dSolid* pLink = createLink(pBlock, NcGePoint3d(point_A.x, point_A.y, -offset - thickness), point_A.distanceTo(point_C), 3, 2, atan((point_C.y - point_A.y)/(point_C.x - point_A.x)), NcGeVector3d(0, 0, 1), thickness);
+
+		pBlock->appendNcDbEntity(pLink);
+
+		pLink->close();
+
+
+		//// Creating link with slot
+
+		double radius = 3;
+		double hole_diam = 2;
+
+		NcDb3dSolid* pLinkSlot = createLink(pBlock, NcGePoint3d(0, 0, -thickness/2), point_H.distanceTo(point_I), radius, hole_diam, 0, NcGeVector3d(0,0,1), thickness);
+
+		NcDb3dSolid* pLinkSlotHand = createLink(pBlock, NcGePoint3d(point_H.distanceTo(point_I), 0, -thickness / 2), point_I.distanceTo(point_D), radius, hole_diam, -atan((point_D.y - point_I.y) / (point_D.x - point_I.x)), NcGeVector3d(0, 0, 1), thickness);
+
+		pLinkSlot->booleanOper(NcDb::kBoolUnite, pLinkSlotHand);
+
+		double rectSlot_length = 15;
+		double rectSlot_width = 6;
+
+		double slot_Length = 10;
+		double slot_offset = 40;
+
+		NcDb3dSolid* rectSlot = rectangleExtrude(pBlock, NcGePoint3d(slot_offset, -radius, -rectSlot_width / 2), 2 * radius, rectSlot_length, rectSlot_width);
+
+		pLinkSlot->booleanOper(NcDb::kBoolUnite, rectSlot);
+
+		NcDb3dSolid* pSlot1 = slotExtrude(pBlock, NcGePoint3d(0 + slot_offset + rectSlot_length / 2 - slot_Length / 2, radius, 0), slot_Length, 2.0 / 2, 0, NcGeVector3d(0, 0, 1), 2 * radius);
+
+		NcGeMatrix3d* matrixRotateSlot = new NcGeMatrix3d();
+
+		matrixRotateSlot->setToRotation(PI/2, NcGeVector3d(1, 0, 0), NcGePoint3d(0 + slot_offset + rectSlot_length / 2 - slot_Length / 2, radius, 0));
+
+		pSlot1->transformBy(*matrixRotateSlot);
+
+		pLinkSlot->booleanOper(NcDb::kBoolSubtract, pSlot1);
+
+		NcGeMatrix3d* matrixRotate1 = new NcGeMatrix3d();
+
+		matrixRotate1->setToRotation(atan((point_H.y - point_I.y) / (point_H.x - point_I.x)), NcGeVector3d(0, 0, 1), NcGePoint3d(0, 0, -thickness / 2));
+
+		pLinkSlot->transformBy(*matrixRotate1);
+
+		NcGeMatrix3d* matrixRotate2 = new NcGeMatrix3d();
+
+		matrixRotate2->setToTranslation(NcGeVector3d(point_H.x, point_H.y, thickness / 2 + offset));
+
+		pLinkSlot->transformBy(*matrixRotate2);
+
+		pBlock->appendNcDbEntity(pLinkSlot);
+
+		pLinkSlot->close();
+
+
+		//// Creating midphalanx base
+		
+		NcDb3dSolid* pBase1 = slotExtrude(pBlock, NcGePoint3d(point_I.x, point_I.y, -offset), point_I.distanceTo(point_C), radius, PI + atan((point_C.y - point_I.y) / (point_C.x - point_I.x)), NcGeVector3d(0, 0, 1), thickness);
+
+		NcDb3dSolid* pBaseHorizontal = slotExtrude(pBlock, NcGePoint3d(point_C.x, point_C.y, -offset), point_C.distanceTo(point_G), radius, atan((point_G.y - point_C.y) / (point_G.x - point_C.x)), NcGeVector3d(0, 0, 1), thickness);
+
+		pBase1->booleanOper(NcDb::kBoolUnite, pBaseHorizontal);
+
+		NcDb3dSolid* pCircle = cylinderExtrude(pBlock, NcGePoint3d(point_I.x, point_I.y, -offset), NcGeVector3d(0, 0, 1), radius, 9.0);
+
+		pBase1->booleanOper(NcDb::kBoolUnite, pCircle);
+
+
+		NcDb3dSolid* pHoleDown1 = cylinderExtrude(pBlock, NcGePoint3d(point_C.x, point_C.y, -offset), NcGeVector3d(0, 0, 1), 1.5, thickness);
+		pBase1->booleanOper(NcDb::kBoolSubtract, pHoleDown1);
+
+		NcDb3dSolid* pHoleHorizontal = cylinderExtrude(pBlock, NcGePoint3d(point_G.x,point_G.y, -offset), NcGeVector3d(0, 0, 1), 1.5, thickness);
+		pBase1->booleanOper(NcDb::kBoolSubtract, pHoleHorizontal);
+
+		NcDb3dSolid* pHoleUp1 = cylinderExtrude(pBlock, NcGePoint3d(point_I.x, point_I.y, -offset), NcGeVector3d(0, 0, 1), 1.5, 9.0);
+		pBase1->booleanOper(NcDb::kBoolSubtract, pHoleUp1);
+
+
+		pBlock->appendNcDbEntity(pBase1);
+
+		pBase1->close();
+
+
+		//// Create distal part
+
+		NcDb3dSolid* pDistal = slotExtrude(pBlock, NcGePoint3d(point_G.x, point_G.y, -offset + thickness), point_G.distanceTo(point_F), 3, PI / 2, NcGeVector3d(0, 0, 1), thickness);
+
+		double offset_y = 3;
+		double plate_length = 3;
+		double plate_width = 2;
+		double hole_diam2 = 2;
+
+		NcDb3dSolid* pRect = rectangleExtrude(pBlock, NcGePoint3d(point_G.x + radius, point_G.y + offset_y, -offset + thickness), plate_width, plate_length, thickness);
+
+		pDistal->booleanOper(NcDb::kBoolUnite, pRect);
+
+		NcDb3dSolid* pHoleDown2 = cylinderExtrude(pBlock, NcGePoint3d(point_G.x, point_G.y, -offset + thickness), NcGeVector3d(0, 0, 1), hole_diam2 / 2, thickness);
+
+		pDistal->booleanOper(NcDb::kBoolSubtract, pHoleDown2);
+
+		NcDb3dSolid* pHoleUp2 = cylinderExtrude(pBlock, NcGePoint3d(point_G.x, point_G.y + point_G.distanceTo(point_F), -offset + thickness), NcGeVector3d(0, 0, 1), hole_diam2 / 2, thickness);
+
+		pDistal->booleanOper(NcDb::kBoolSubtract, pHoleUp2);
+
+		pBlock->appendNcDbEntity(pDistal);
+
+		pDistal->close();
+
+
+		/// Create link 
+
+		NcDb3dSolid* pMiddle_link = createLink(pBlock, NcGePoint3d(point_D.x, point_D.y, main_width / 2 - leftCut_depth-thickness), point_D.distanceTo(point_F), 3, 1.5, atan((point_F.y - point_D.y) / (point_F.x - point_D.x)), NcGeVector3d(0, 0, 1), thickness);
+
+		pBlock->appendNcDbEntity(pMiddle_link);
+
+		pMiddle_link->close();
+
+
+
+
+		//createLinkWithSlot(pBlock, NcGePoint3d(12, 3, 8 - 3.5), );
 
 		//NcGePoint3d origin(0, 0, 0);
 		//NcGePoint3d point_A(base_length * cos(base_angle * PI / 180), base_length * sin(base_angle * PI / 180), 0);
@@ -367,7 +572,24 @@ void FingerProsthetic_Mechanism() {
 		//pLine_distal->close();
 		//pLine_middle_base->close();
 		//pLine_middle_hand->close();
-		pBlock->close();
+		//pBlock->close();
+
+		//NcDbCircle a(NcGePoint3d(8*cos(PI/3), 8*sin(PI/3), 0), NcGeVector3d(0, 0, 1), 74.12);
+		//NcDbCircle b(NcGePoint3d(71.42 * cos(PI / 3), 71.42 * sin(PI / 3), 0), NcGeVector3d(0, 0, 1), 8);
+
+
+		//NcDbEntity* t = new NcDbEntity(a);
+
+
+		//NcGeCircArc3d* ac = new NcGeCircArc3d();
+
+		//ac->intersectWith();
+
+
+		//a.intersectWith(const NcDbEntity* entity, NcDb::Intersect intType,
+		//	NcGePoint3dArray& points, NRX::GsMarker this_marker = 0,
+		//	NRX::GsMarker other_marker = 0) const NRX_SEALED;);
+
 
 		acutPrintf(L"\nМеханизм успешно построен!\n");
 
@@ -382,93 +604,90 @@ void FingerProsthetic_Mechanism() {
 //	return LineId;
 }
 
+void createRing(double inner_diameter) {
+
+	AcDbBlockTable* pBlockTable;
+	acdbHostApplicationServices()->workingDatabase()->getSymbolTable(pBlockTable, AcDb::kForRead);
+	AcDbBlockTableRecord* pBlock;
+	pBlockTable->getAt(ACDB_MODEL_SPACE, pBlock, AcDb::kForWrite);
+	pBlockTable->close();
+
+	double ring_thickness = 2;
+	double height = 10;
+
+	double fixation_width = 9;
+	double fixation_height = 6;
+	double fixation_translateX = 6.5;
+
+	double fixation_walls_thickness = 1;
+	double slot_width = fixation_width - fixation_walls_thickness * 2;
+	double slot_depth = 4;
+
+
+	AcGeVector3d normal(0.0, 0.0, 1.0);
+
+	AcGePoint3d center(0.0, 0.0, 0.0);
+
+	///// Creating main ring contour
+	NcDb3dSolid* pRing = cylinderExtrude(pBlock, center, normal, inner_diameter / 2 + ring_thickness, height);
+
+
+	///// Creating fixation part
+	NcDb3dSolid* pFixation = rectangleExtrude(pBlock, NcGePoint3d(-fixation_translateX - fixation_width / 2, 0, 0), inner_diameter / 2 + ring_thickness + fixation_height, fixation_width, height);
+
+	pRing->booleanOper(NcDb::kBoolUnite, pFixation);
+
+
+	///// Creating inner main hole
+	NcDb3dSolid* pHole = cylinderExtrude(pBlock, center, normal, inner_diameter / 2, height);
+	pRing->booleanOper(NcDb::kBoolSubtract, pHole);
+
+	///// Creating slot in fixation
+
+	NcDb3dSolid* pSlot = rectangleExtrude(pBlock, NcGePoint3d(-fixation_translateX - fixation_width / 2 + fixation_walls_thickness, inner_diameter / 2 + ring_thickness + fixation_height - slot_depth, 0), slot_depth, slot_width, height);
+	pRing->booleanOper(NcDb::kBoolSubtract, pSlot);
+
+	///// Creating revolve for nut and screw
+
+	double diam_HoleForThread = 4;
+	double hole_depth = 2;
+	double diam_HoleForNut = 6;
+
+	NcDb3dSolid* pThreadedHole = cylinderExtrude(pBlock, NcGePoint3d(-fixation_translateX, inner_diameter / 2 + ring_thickness + fixation_height - slot_depth, height / 2), NcGeVector3d(0, 1, 0), diam_HoleForThread / 2, -(inner_diameter / 2 + ring_thickness + fixation_height - slot_depth));
+
+	pRing->booleanOper(NcDb::kBoolSubtract, pThreadedHole);
+
+	NcDb3dSolid* pNutForHole = cylinderExtrude(pBlock, NcGePoint3d(-fixation_translateX, inner_diameter / 2 + ring_thickness + fixation_height - slot_depth - hole_depth, height / 2), NcGeVector3d(0, 1, 0), diam_HoleForNut / 2, -(inner_diameter / 2 + ring_thickness + fixation_height - slot_depth - hole_depth));
+
+	pRing->booleanOper(NcDb::kBoolSubtract, pNutForHole);
+
+	//////////
+
+	pBlock->appendNcDbEntity(pRing);
+	pRing->close();
+
+	pBlock->close();
+
+	acutPrintf(L"\nКольцо успешно построено!\n");
+
+}
+
 void FingerProsthetic_Ring() {
 
 	RingForm* pRingForm = new RingForm(nullptr);
 
 	QObject::connect(pRingForm->ui.Create_pushBtn, &QPushButton::clicked, [&]() {
-
-		AcDbBlockTable* pBlockTable;
-		acdbHostApplicationServices()->workingDatabase()->getSymbolTable(pBlockTable, AcDb::kForRead);
-		AcDbBlockTableRecord* pBlock;
-		pBlockTable->getAt(ACDB_MODEL_SPACE, pBlock, AcDb::kForWrite);
-		pBlockTable->close();
-
-		double inner_diameter = (pRingForm->ui.lineEdit->text()).toDouble();
-		double ring_thickness = 2;
-		double height = 10;
-
-		double fixation_width = 9;
-		double fixation_height = 6;
-		double fixation_translateX = 6.5;
-		
-		double fixation_walls_thickness = 1;
-		double slot_width = fixation_width - fixation_walls_thickness * 2;
-		double slot_depth = 4;
-
-
-		AcGeVector3d normal(0.0, 0.0, 1.0);
-
-		AcGePoint3d center(0.0, 0.0, 0.0);
-
-		///// Creating main ring contour
-		NcDb3dSolid* pRing = cylinderExtrude(pBlock, center, normal, inner_diameter / 2 + ring_thickness, height);
-
-
-		///// Creating fixation part
-		NcDb3dSolid* pFixation = rectangleExtrude(pBlock, NcGePoint3d(-fixation_translateX - fixation_width / 2, 0, 0), inner_diameter / 2 + ring_thickness + fixation_height, fixation_width, height);
-
-		pRing->booleanOper(NcDb::kBoolUnite, pFixation);
-
-
-		///// Creating inner main hole
-		NcDb3dSolid* pHole = cylinderExtrude(pBlock, center, normal, inner_diameter / 2, height);
-		pRing->booleanOper(NcDb::kBoolSubtract, pHole);
-
-		///// Creating slot in fixation
-
-		NcDb3dSolid* pSlot = rectangleExtrude(pBlock, NcGePoint3d(-fixation_translateX - fixation_width / 2 + fixation_walls_thickness, inner_diameter / 2 + ring_thickness + fixation_height - slot_depth, 0), slot_depth, slot_width, height);
-		pRing->booleanOper(NcDb::kBoolSubtract, pSlot);
-
-		///// Creating revolve for nut and screw
-
-		double diam_HoleForThread = 4;
-		double hole_depth = 2;
-		double diam_HoleForNut = 6;
-
-		NcDb3dSolid* pThreadedHole = cylinderExtrude(pBlock, NcGePoint3d(-fixation_translateX, inner_diameter / 2 + ring_thickness + fixation_height - slot_depth, height / 2), NcGeVector3d(0, 1, 0), diam_HoleForThread / 2,  -(inner_diameter / 2 + ring_thickness + fixation_height - slot_depth));
-
-		pRing->booleanOper(NcDb::kBoolSubtract, pThreadedHole);
-
-		NcDb3dSolid* pNutForHole = cylinderExtrude(pBlock, NcGePoint3d(-fixation_translateX, inner_diameter / 2 + ring_thickness + fixation_height - slot_depth - hole_depth, height / 2), NcGeVector3d(0, 1, 0), diam_HoleForNut / 2, -(inner_diameter / 2 + ring_thickness + fixation_height - slot_depth - hole_depth));
-
-		pRing->booleanOper(NcDb::kBoolSubtract, pNutForHole);
-
-		//////////
-
-		pBlock->appendNcDbEntity(pRing);
-		pRing->close();
-
-		pBlock->close();
-
-		acutPrintf(L"\nКольцо успешно построено!\n");
+		pRingForm->inner_diam = pRingForm->ui.lineEdit->text().toDouble();
+		createRing(pRingForm->inner_diam);
 		pRingForm->close();
-
-		});
+	});
 
 	pRingForm->exec();
-
 }
-
 
 void FingerProsthetic_Plate() {
 
 	PlateForm* pPlateForm = new PlateForm(nullptr);
-
-	QObject::connect(pPlateForm->ui.checkBox_Index, &QCheckBox::stateChanged, pPlateForm, &PlateForm::checkBoxIndexFinger);
-	QObject::connect(pPlateForm->ui.checkBox_middle, &QCheckBox::stateChanged, pPlateForm, &PlateForm::checkBoxMiddleFinger);
-	QObject::connect(pPlateForm->ui.checkBox_Ring, &QCheckBox::stateChanged, pPlateForm, &PlateForm::checkBoxRingFinger);
-	QObject::connect(pPlateForm->ui.checkBox_Pinky, &QCheckBox::stateChanged, pPlateForm, &PlateForm::checkBoxPinky);
 
 	QObject::connect(pPlateForm->ui.pushBtn_Create, &QPushButton::clicked, [&]() {
 
@@ -644,6 +863,14 @@ void FingerProsthetic_Plate() {
 		pPlateForm->exec();
 }
 
+void FingerProsthetic_Designer(){
+
+	MainForm* pMainForm = new MainForm(nullptr);
+
+	pMainForm->exec();
+
+}
+
 void initApp() {
 	ncedRegCmds->addCommand(L"ProstheticDesigner_GROUP",
 		L"_FingerProsthetic_Mechanism",
@@ -660,6 +887,11 @@ void initApp() {
 		L"FingerProsthetic_Plate",
 		ACRX_CMD_TRANSPARENT,
 		FingerProsthetic_Plate);
+	ncedRegCmds->addCommand(L"ProstheticDesinger_GROUP",
+		L"_FingerProsthetic_Designer",
+		L"FingerProsthetic_Designer",
+		ACRX_CMD_TRANSPARENT,
+		FingerProsthetic_Designer);
 }
 
 void uninitApp()
