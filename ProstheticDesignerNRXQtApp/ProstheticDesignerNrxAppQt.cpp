@@ -676,8 +676,8 @@ void FingerProsthetic_Ring() {
 
 	RingForm* pRingForm = new RingForm(nullptr);
 
-	QObject::connect(pRingForm->ui.Create_pushBtn, &QPushButton::clicked, [&]() {
-		pRingForm->inner_diam = pRingForm->ui.lineEdit->text().toDouble();
+	QObject::connect(pRingForm->Create_pushBtn, &QPushButton::clicked, [&]() {
+		pRingForm->inner_diam = pRingForm-> comboBox_InnerDiam->currentText().toInt();
 		createRing(pRingForm->inner_diam);
 		pRingForm->close();
 	});

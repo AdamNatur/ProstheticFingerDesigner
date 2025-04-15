@@ -28,6 +28,9 @@ public:
 	QPushButton* pPushBtnReject = new QPushButton("Cancel", this);
 	QPushButton* pPushBtnCreate = new QPushButton("Create", this);
 
+private slots:
+	void func();
+
 private:
 	Ui::MainFormClass ui;
 };

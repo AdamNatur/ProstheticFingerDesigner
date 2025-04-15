@@ -22,7 +22,7 @@ public:
 public:
 	RingForm* pRingForm = new RingForm(this);
 
-private:
+public:
 	QCheckBox* pCheckBoxFinger;
 	QLineEdit* pLineEditMainStatus;
 	QHBoxLayout* pHLayout;
@@ -42,6 +42,26 @@ private:
 	QLineEdit* pLineEditJointDistStatus;
 	QHBoxLayout* pHLayoutJointDist;
 
+public:
+	enum errorCode validateJointDistValue(double dist);
+	enum totalValidation totalValidation();
+
 private slots:
 	void ringBtnClicked();
+	void changeStatus();
+	void changeStyleCorrect();
+	void validateJointDist();
+};
+
+enum errorCode {
+	noError,
+	tooLowValue,
+	tooBigValue,
+	negativeValue,
+};
+
+enum totalValidation {
+	correct,
+	errorExist,
+	notFullyEvaluated
 };

@@ -20,7 +20,7 @@ MainForm::MainForm(QWidget *parent)
 
 	plabel_picture = new QLabel("Picture", this);
 	plabel_picture->setPixmap(QPixmap(QString::fromUtf8(":/new/prefix1/Qt/Media/Prosthetic Configurations/1-finger.jpg")));
-
+	plabel_picture->setFixedSize(973, 673);
 	plabel_picture->setScaledContents(true);
 
 	pVerticalLine->setFrameShape(QFrame::VLine);  
@@ -45,10 +45,44 @@ MainForm::MainForm(QWidget *parent)
 
 	this->setLayout(pMainLayout);
 
-	
+	QObject::connect(this->pCGBoxIndex->pCheckBoxFinger, &QCheckBox::stateChanged, this, &MainForm::func);
+	QObject::connect(this->pCGBoxMiddle->pCheckBoxFinger, &QCheckBox::stateChanged, this, &MainForm::func);
+	QObject::connect(this->pCGBoxRing->pCheckBoxFinger, &QCheckBox::stateChanged, this, &MainForm::func);
+	QObject::connect(this->pCGBoxPinky->pCheckBoxFinger, &QCheckBox::stateChanged, this, &MainForm::func);
 
 	/*ui.setupUi(this);*/
 }
 
 MainForm::~MainForm()
 {}
+
+void MainForm::func() {
+
+	int finger_amount = this->pCGBoxIndex->pCheckBoxFinger->isChecked() + this->pCGBoxMiddle->pCheckBoxFinger->isChecked() 
+		+ this->pCGBoxRing->pCheckBoxFinger->isChecked() + this->pCGBoxPinky->pCheckBoxFinger->isChecked();
+
+	switch (finger_amount) {
+	case 1: {
+		this->plabel_picture->setPixmap(QPixmap(QString::fromUtf8(":/new/prefix1/Qt/Media/Prosthetic Configurations/1-finger.jpg")));
+		break;
+	}
+	case 2: {
+		this->plabel_picture->setPixmap(QPixmap(QString::fromUtf8(":/new/prefix1/Qt/Media/Prosthetic Configurations/2-finger.jpg")));
+		break;
+	}
+	case 3: {
+		this->plabel_picture->setPixmap(QPixmap(QString::fromUtf8(":/new/prefix1/Qt/Media/Prosthetic Configurations/3-finger.jpg")));
+		break;
+	}
+	case 4: {
+		this->plabel_picture->setPixmap(QPixmap(QString::fromUtf8(":/new/prefix1/Qt/Media/Prosthetic Configurations/4-finger.jpg")));
+		break;
+	}
+	default: {
+		this->plabel_picture->setPixmap(QPixmap(QString::fromUtf8(":/new/prefix1/Qt/Media/Prosthetic Configurations/1-finger.jpg")));
+		break;
+	}
+	}
+
+	update();
+}
