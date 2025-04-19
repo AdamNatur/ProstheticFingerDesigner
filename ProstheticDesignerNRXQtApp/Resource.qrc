@@ -5,10 +5,17 @@
         <file>Qt/Media/Plates/3-Finger.jpg</file>
         <file>Qt/Media/Plates/4-Finger.jpg</file>
         <file>Qt/Media/Ring.jpg</file>
-        <file>Qt/Media/Mechanism.jpg</file>
         <file>Qt/Media/Prosthetic Configurations/1-finger.jpg</file>
         <file>Qt/Media/Prosthetic Configurations/2-finger.jpg</file>
         <file>Qt/Media/Prosthetic Configurations/3-finger.jpg</file>
         <file>Qt/Media/Prosthetic Configurations/4-finger.jpg</file>
+        <file>Qt/Media/Mechanism/Mechanism_default.jpg</file>
+        <file>Qt/Media/Mechanism/Mechanism_baseLength.jpg</file>
+        <file>Qt/Media/Mechanism/Mechanism_distalLength.jpg</file>
+        <file>Qt/Media/Mechanism/Mechanism_middleBaseLength.jpg</file>
+        <file>Qt/Media/Mechanism/Mechanism_middleHandLength.jpg</file>
+        <file>Qt/Media/Mechanism/Mechanism_r2HandLength.jpg</file>
+        <file>Qt/Media/Mechanism/Mechanism_r2Length.jpg</file>
+        <file>Qt/Media/Mechanism/Mechanism_r3Length.jpg</file>
     </qresource>
 </RCC>

@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="CustomQGroupBox.cpp" />
+    <ClCompile Include="MainForm.cpp" />
+    <ClCompile Include="MechanismForm.cpp" />
+    <ClCompile Include="PlateForm.cpp" />
+    <ClCompile Include="ProstheticDesignerNrxAppQt.cpp" />
+    <ClCompile Include="RingForm.cpp" />
+    <ClCompile Include="stdafx.cpp" />
+    <ClCompile Include="geometry.cpp">
+      <Filter>createMechanism</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Resource.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="geometry.h">
+      <Filter>createMechanism</Filter>
+    </ClInclude>
+    <ClInclude Include="MechanismForm.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="RingForm.h" />
+    <QtMoc Include="PlateForm.h" />
+    <QtMoc Include="MainForm.h" />
+    <QtMoc Include="CustomQGroupBox.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtRcc Include="Resource.qrc" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtUic Include="MainForm.ui" />
+    <QtUic Include="MechanismForm.ui" />
+    <QtUic Include="PlateForm.ui" />
+    <QtUic Include="RingForm.ui" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="createMechanism">
+      <UniqueIdentifier>{5b4cf1e2-bedd-4470-b23a-a20abc129d9b}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

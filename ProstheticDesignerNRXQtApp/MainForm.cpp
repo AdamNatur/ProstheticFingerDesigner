@@ -86,3 +86,14 @@ void MainForm::func() {
 
 	update();
 }
+
+int MainForm::totalCheck()
+{
+	enum totalValidation checkIndex = this->pCGBoxIndex->totalValidation();
+	enum totalValidation checkMiddle = this->pCGBoxIndex->totalValidation();
+	enum totalValidation checkRing = this->pCGBoxIndex->totalValidation();
+	enum totalValidation checkPinky   = this->pCGBoxIndex->totalValidation();
+
+	return 0;
+}
+

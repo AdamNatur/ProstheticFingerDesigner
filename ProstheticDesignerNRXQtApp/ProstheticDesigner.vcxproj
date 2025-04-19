@@ -127,15 +127,17 @@
   <ItemGroup>
     <QtMoc Include="RingForm.h" />
     <QtMoc Include="PlateForm.h" />
-    <QtMoc Include="MechanismForm.h" />
+    <ClInclude Include="MechanismForm.h" />
     <QtMoc Include="MainForm.h" />
     <QtMoc Include="CustomQGroupBox.h" />
+    <ClInclude Include="geometry.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CustomQGroupBox.cpp" />
     <ClCompile Include="MainForm.cpp" />
+    <ClCompile Include="geometry.cpp" />
     <ClCompile Include="MechanismForm.cpp" />
     <ClCompile Include="PlateForm.cpp" />
     <ClCompile Include="ProstheticDesignerNrxAppQt.cpp" />

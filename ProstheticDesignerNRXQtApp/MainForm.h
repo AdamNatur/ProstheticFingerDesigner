@@ -28,6 +28,9 @@ public:
 	QPushButton* pPushBtnReject = new QPushButton("Cancel", this);
 	QPushButton* pPushBtnCreate = new QPushButton("Create", this);
 
+public:
+	int totalCheck();
+
 private slots:
 	void func();
 

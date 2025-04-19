@@ -13,24 +13,29 @@ CustomQGroupBox::CustomQGroupBox(const QString& title, QWidget* parent)
 	pCheckBoxFinger = new QCheckBox(title, this);
 	pLineEditMainStatus = new QLineEdit(this);
 	pLineEditMainStatus->setReadOnly(true);
+	changeState(pLineEditMainStatus, default);
 
 	pLabelMechanism = new QLabel("Mechanism", this);
 	pPushBtnMechanismCreate = new QPushButton("Set", this);
 	pLineEditMechanismStatus = new QLineEdit(this);
 	pLineEditMechanismStatus->setReadOnly(true);
+	changeState(pLineEditMechanismStatus, default);
 
 	pLabelRing = new QLabel("Ring", this);
-	pPushBtnRingCreate = new QPushButton("Set", this);
+	pComboBoxRingDiam = new QComboBox(this);
+	configureComboBox(pComboBoxRingDiam);
 	pLineEditRingStatus = new QLineEdit(this);
+	pLineEditRingStatus->setText("Not specified");
 	pLineEditRingStatus->setReadOnly(true);
+	changeState(pLineEditRingStatus, default);
 
 	pLabelJointDist = new QLabel("Joint Distance");
 	pLineEditSetJointDist = new QLineEdit(this);
 	pLineEditJointDistStatus = new QLineEdit(this);
 	pLineEditJointDistStatus->setReadOnly(true);
+	changeState(pLineEditJointDistStatus, default);
 
-	QDoubleValidator* validator = new QDoubleValidator(this);
-	validator->setNotation(QDoubleValidator::StandardNotation);
+	QRegExpValidator* validator = new QRegExpValidator(QRegExp("^([1-9][0-9]*|0)(\\.|,)[0-9]{2}"), this);
 	pLineEditSetJointDist->setValidator(validator);
 
 
@@ -50,9 +55,9 @@ CustomQGroupBox::CustomQGroupBox(const QString& title, QWidget* parent)
 	pHLayoutMechanism->addWidget(pLineEditMechanismStatus);
 	layout->addLayout(pHLayoutMechanism);
 
-	pHLayoutRing->addWidget(pLabelRing);
-	pHLayoutRing->addWidget(pPushBtnRingCreate);
-	pHLayoutRing->addWidget(pLineEditRingStatus);
+	pHLayoutRing->addWidget(pLabelRing, 2);
+	pHLayoutRing->addWidget(pComboBoxRingDiam, 2);
+	pHLayoutRing->addWidget(pLineEditRingStatus, 4);
 	layout->addLayout(pHLayoutRing);
 
 	pHLayoutJointDist->addWidget(pLabelJointDist);
@@ -62,15 +67,41 @@ CustomQGroupBox::CustomQGroupBox(const QString& title, QWidget* parent)
 
 	this->setLayout(layout);
 
-	QObject::connect(pPushBtnRingCreate, &QPushButton::clicked, this, &CustomQGroupBox::ringBtnClicked);
+	changeState(pLineEditMainStatus, default);
+	changeState(pLineEditRingStatus, default);
+	changeState(pLineEditMechanismStatus, default);
+	changeState(pLineEditJointDistStatus, default);
+	pPushBtnMechanismCreate->setDisabled(true);
+	pComboBoxRingDiam->setDisabled(true);
+	pLineEditSetJointDist->setReadOnly(true);
+
+	QObject::connect(pComboBoxRingDiam, &QComboBox::currentTextChanged, this, &CustomQGroupBox::ringDiamChanged);
 	QObject::connect(pLineEditRingStatus, &QLineEdit::textChanged, this, &CustomQGroupBox::changeStyleCorrect);
 	QObject::connect(pLineEditSetJointDist, &QLineEdit::textEdited, this, &CustomQGroupBox::validateJointDist);
-	
+	QObject::connect(pCheckBoxFinger, &QCheckBox::stateChanged, this, &CustomQGroupBox::checkBoxFingerChanged);
+	QObject::connect(pPushBtnMechanismCreate, &QPushButton::clicked, this, &CustomQGroupBox::setMechanism);
 
 }
 
 CustomQGroupBox::~CustomQGroupBox()
 {}
+
+void CustomQGroupBox::setMechanism()
+{
+	this->pMechanismForm->exec();
+}
+
+
+void CustomQGroupBox::configureComboBox(QComboBox* box)
+{
+	unsigned int init_size = 12;
+	unsigned int max_size = 25;
+
+	for (unsigned int i = init_size; i <= max_size; i++)
+	{
+		box->addItem(QString::number(i));
+	}
+}
 
 void changeStyle(QLineEdit* plineEdit, enum errorCode i)
 {
@@ -80,9 +111,9 @@ void changeStyle(QLineEdit* plineEdit, enum errorCode i)
 			"background-color: green; "
 			/*		"border: 2px solid gray; "
 					"border-radius: 5px; "
-					"padding: 0 8px; "
+					"padding: 0 8px; "*/
 					"selection-background-color: darkgray; "
-					"font-size: 16px; "
+					/*"font-size: 16px; "
 					*/"}");
 	}
 	if (i == tooLowValue || i == tooBigValue || i == negativeValue)
@@ -91,30 +122,50 @@ void changeStyle(QLineEdit* plineEdit, enum errorCode i)
 			"background-color: red; "
 			/*		"border: 2px solid gray; "
 					"border-radius: 5px; "
-					"padding: 0 8px; "
+					"padding: 0 8px; "*/
 					"selection-background-color: darkgray; "
-					"font-size: 16px; "
+					/*"font-size: 16px; "
 					*/"}");
 	}
+	if (i == default )
+	{
+		plineEdit->setStyleSheet("QLineEdit { "
+			"background-color: black; "
+			/*		"border: 2px solid gray; "
+					"border-radius: 5px; "
+					"padding: 0 8px; "*/
+			"selection-background-color: darkgray; "
+			/*"font-size: 16px; "
+			*/"}");
+	}
+	if (i == active)
+	{
+		plineEdit->setStyleSheet("QLineEdit { "
+			"background-color: grey; "
+			/*		"border: 2px solid gray; "
+					"border-radius: 5px; "
+					"padding: 0 8px; "*/
+			"selection-background-color: darkgray; "
+			/*"font-size: 16px; "*/
+			"}");
+	}
+
+
+	
 }
 
-void CustomQGroupBox::ringBtnClicked() 
+void CustomQGroupBox::ringDiamChanged()
 {
-	this->pRingForm->exec();
-	this->pLineEditRingStatus->setText(this->pRingForm->comboBox_InnerDiam->currentText());
-
-}
-
-void::CustomQGroupBox::changeStatus()
-{
-	QString str = "Specified finger size - " + this->pRingForm->comboBox_InnerDiam->currentText();
+	QString str = "Specified finger size - " + this->pComboBoxRingDiam->currentText();
 
 	this->pLineEditRingStatus->setText(str);
+
+	changeStyle(pLineEditRingStatus, noError);
 }
 
 void CustomQGroupBox::changeStyleCorrect()
 {
-	changeStyle(pLineEditRingStatus, noError);
+	changeStyle(pLineEditRingStatus, default);
 }
 
 void CustomQGroupBox::validateJointDist()
@@ -166,5 +217,42 @@ enum totalValidation CustomQGroupBox::totalValidation()
 		totalCheck = errorExist;
 	if (this->pLineEditRingStatus->text() == "")
 		totalCheck = notFullyEvaluated;
+
+	return totalCheck;
+}
+
+void CustomQGroupBox::changeState(QLineEdit* plineEdit, enum errorCode state)
+{
+	if (state == active) 
+		plineEdit->setText("Ready to work!");
+	if (state == default)
+		plineEdit->setText("Not Active!");
+
+	changeStyle(plineEdit, state);
+}
+
+void CustomQGroupBox::checkBoxFingerChanged()
+{
+	if (!this->pCheckBoxFinger->isChecked())
+	{
+		changeState(pLineEditMainStatus, default);
+		changeState(pLineEditRingStatus, default);
+		changeState(pLineEditMechanismStatus, default);
+		changeState(pLineEditJointDistStatus, default);
+		pPushBtnMechanismCreate->setDisabled(true);
+		pComboBoxRingDiam->setDisabled(true);
+		pLineEditSetJointDist->setReadOnly(true);
+	}
+	else
+	{
+		changeState(pLineEditMainStatus, active);
+		changeState(pLineEditRingStatus, active);
+		changeState(pLineEditMechanismStatus, active);
+		changeState(pLineEditJointDistStatus, active);
+		pPushBtnMechanismCreate->setDisabled(false);
+		pComboBoxRingDiam->setDisabled(false);
+		pLineEditSetJointDist->setEnabled(true);
+		pLineEditSetJointDist->setReadOnly(false);
+	}
 }
 

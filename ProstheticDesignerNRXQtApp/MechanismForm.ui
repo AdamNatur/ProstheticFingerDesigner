@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>MechanismFormClass</class>
- <widget class="QDialog" name="MechanismFormClass">
+ <class>this</class>
+ <widget class="QDialog" name="this">
   <property name="geometry">
    <rect>
     <x>0</x>

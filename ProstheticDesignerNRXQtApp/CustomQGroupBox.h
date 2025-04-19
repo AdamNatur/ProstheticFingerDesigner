@@ -7,8 +7,9 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QCheckBox>
+#include <QComboBox>
 
-#include "RingForm.h"
+#include "MechanismForm.h"
 
 
 class CustomQGroupBox  : public QGroupBox
@@ -20,7 +21,7 @@ public:
 	~CustomQGroupBox();
 
 public:
-	RingForm* pRingForm = new RingForm(this);
+	MechanismForm* pMechanismForm = new MechanismForm(this);
 
 public:
 	QCheckBox* pCheckBoxFinger;
@@ -33,7 +34,7 @@ public:
 	QHBoxLayout* pHLayoutMechanism;
 
 	QLabel* pLabelRing;
-	QPushButton* pPushBtnRingCreate;
+	QComboBox* pComboBoxRingDiam; 
 	QLineEdit* pLineEditRingStatus;
 	QHBoxLayout* pHLayoutRing;
 
@@ -45,12 +46,15 @@ public:
 public:
 	enum errorCode validateJointDistValue(double dist);
 	enum totalValidation totalValidation();
+	void changeState(QLineEdit* pLineEdit, enum errorCode i);
+	void configureComboBox(QComboBox* box);
 
 private slots:
-	void ringBtnClicked();
-	void changeStatus();
+	void ringDiamChanged();
 	void changeStyleCorrect();
 	void validateJointDist();
+	void checkBoxFingerChanged();
+	void setMechanism();
 };
 
 enum errorCode {
@@ -58,7 +62,11 @@ enum errorCode {
 	tooLowValue,
 	tooBigValue,
 	negativeValue,
+	default, /*not active*/
+	active
+
 };
+
 
 enum totalValidation {
 	correct,
