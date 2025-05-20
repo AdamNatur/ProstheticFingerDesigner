@@ -9,11 +9,14 @@
 #include "AcExtensionModule.h"
 #include <math.h>
 
+#include "Ring.h"
+
+
 
 class Mechanism
 {
 public:
-	Mechanism(AcDbBlockTableRecord* pBlock, double inner_diam);
+	Mechanism(AcDbBlockTableRecord* pBlock, double inner_diam, MechanismForm* form);
 	~Mechanism();
 
 public:
@@ -26,8 +29,8 @@ public:
 	double middle_hand_length; //default = 7.5;
 	double middle_base_length; //default = 17;
 	double distal_length; //default = 7
-	double middle_angle;
 	double r2_angle;
+	double radius;
 
 	NcGePoint3d point_H;
 	NcGePoint3d point_A;
@@ -54,31 +57,17 @@ public:
 	double functionalHole_diam;
 
 	NcDb3dSolid* pBase = NULL;
+	NcDb3dSolid* pBaseFixation = NULL;
 	NcDb3dSolid* pLink = NULL;
 	NcDb3dSolid* pLinkSlot = NULL;
 	NcDb3dSolid* pBase_middle = NULL;
 	NcDb3dSolid* pDistal = NULL;
 	NcDb3dSolid* pMiddle_link = NULL;
-	NcDb3dSolid* ring = NULL;
 
-
-	double inner_diameter = 0;
-	double ring_thickness = 2;
-	double height = 10;
-	double fixation_width = 9;
-	double fixation_height = 6;
-	double fixation_translateX = 6.5;
-	double fixation_walls_thickness = 1;
-	double slot_width = fixation_width - fixation_walls_thickness * 2;
-	double slot_depth = 4;
 
 	AcGePoint3d* center = NULL;
 
-	NcDb3dSolid* pRing = NULL;
-
-	double diam_HoleForThread = 4;
-	double hole_depth = 2;
-	double diam_HoleForNut = 6;
+	Ring* pRing = NULL;
 
 	double slot_Length = 10;
 	double slot_offset = 40;
@@ -86,9 +75,9 @@ public:
 public:
 	void setPos(NcGePoint3d point_base, NcGePoint3d point_finger, NcDb3dSolid* pSolid);
 	void setPosMech(NcGePoint3d point_base, NcGePoint3d point_finger);
-	void setPosRing(Mechanism mech, int a, double offset);
+	void setPosRing(int a, double offset);
 	void setPosPoint(NcGePoint3d point_base, NcGePoint3d point_finger, NcGePoint3d& point);
-	NcDb3dSolid* createRing(AcDbBlockTableRecord* pBlock, double inner_diameter);
+	void mirror();
 };
 
 

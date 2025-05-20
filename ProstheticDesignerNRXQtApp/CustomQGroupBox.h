@@ -11,6 +11,23 @@
 
 #include "MechanismForm.h"
 
+enum errorCode {
+	noError,
+	Error,
+	tooLowValue,
+	tooBigValue,
+	negativeValue,
+	notFull,
+	default, /*not active*/
+	active
+
+};
+
+enum totalValidation {
+	correct,
+	errorExist,
+	notFullyEvaluated
+};
 
 class CustomQGroupBox  : public QGroupBox
 {
@@ -24,9 +41,6 @@ public:
 	MechanismForm* pMechanismForm = new MechanismForm(this);
 
 public:
-	QCheckBox* pCheckBoxFinger;
-	QLineEdit* pLineEditMainStatus;
-	QHBoxLayout* pHLayout;
 
 	QLabel* pLabelMechanism;
 	QPushButton* pPushBtnMechanismCreate;
@@ -43,6 +57,8 @@ public:
 	QLineEdit* pLineEditJointDistStatus;
 	QHBoxLayout* pHLayoutJointDist;
 
+	errorCode ringValidator = noError;
+
 public:
 	enum errorCode validateJointDistValue(double dist);
 	enum totalValidation totalValidation();
@@ -55,21 +71,9 @@ private slots:
 	void validateJointDist();
 	void checkBoxFingerChanged();
 	void setMechanism();
-};
-
-enum errorCode {
-	noError,
-	tooLowValue,
-	tooBigValue,
-	negativeValue,
-	default, /*not active*/
-	active
-
+	void checkMechanism();
 };
 
 
-enum totalValidation {
-	correct,
-	errorExist,
-	notFullyEvaluated
-};
+
+

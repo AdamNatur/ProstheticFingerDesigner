@@ -2,42 +2,75 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="CustomQGroupBox.cpp" />
-    <ClCompile Include="MainForm.cpp" />
-    <ClCompile Include="MechanismForm.cpp" />
-    <ClCompile Include="PlateForm.cpp" />
     <ClCompile Include="ProstheticDesignerNrxAppQt.cpp" />
-    <ClCompile Include="RingForm.cpp" />
     <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="geometry.cpp">
       <Filter>createMechanism</Filter>
+    </ClCompile>
+    <ClCompile Include="MainForm.cpp">
+      <Filter>Forms</Filter>
+    </ClCompile>
+    <ClCompile Include="MechanismForm.cpp">
+      <Filter>Forms</Filter>
+    </ClCompile>
+    <ClCompile Include="PlateForm.cpp">
+      <Filter>Forms</Filter>
+    </ClCompile>
+    <ClCompile Include="RingForm.cpp">
+      <Filter>Forms</Filter>
+    </ClCompile>
+    <ClCompile Include="Ring.cpp">
+      <Filter>Forms</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Resource.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="MechanismForm.h">
+      <Filter>Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="Ring.h">
+      <Filter>Forms</Filter>
+    </ClInclude>
     <ClInclude Include="geometry.h">
       <Filter>createMechanism</Filter>
     </ClInclude>
-    <ClInclude Include="MechanismForm.h" />
   </ItemGroup>
   <ItemGroup>
-    <QtMoc Include="RingForm.h" />
-    <QtMoc Include="PlateForm.h" />
-    <QtMoc Include="MainForm.h" />
     <QtMoc Include="CustomQGroupBox.h" />
+    <QtMoc Include="MainForm.h">
+      <Filter>Forms</Filter>
+    </QtMoc>
+    <QtMoc Include="PlateForm.h">
+      <Filter>Forms</Filter>
+    </QtMoc>
+    <QtMoc Include="RingForm.h">
+      <Filter>Forms</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <QtRcc Include="Resource.qrc" />
   </ItemGroup>
   <ItemGroup>
-    <QtUic Include="MainForm.ui" />
-    <QtUic Include="MechanismForm.ui" />
-    <QtUic Include="PlateForm.ui" />
-    <QtUic Include="RingForm.ui" />
+    <QtUic Include="MainForm.ui">
+      <Filter>Forms</Filter>
+    </QtUic>
+    <QtUic Include="MechanismForm.ui">
+      <Filter>Forms</Filter>
+    </QtUic>
+    <QtUic Include="PlateForm.ui">
+      <Filter>Forms</Filter>
+    </QtUic>
+    <QtUic Include="RingForm.ui">
+      <Filter>Forms</Filter>
+    </QtUic>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="createMechanism">
       <UniqueIdentifier>{5b4cf1e2-bedd-4470-b23a-a20abc129d9b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Forms">
+      <UniqueIdentifier>{144e3cc1-3e6a-4160-a609-063d0e36b121}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

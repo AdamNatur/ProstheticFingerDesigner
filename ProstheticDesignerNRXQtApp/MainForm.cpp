@@ -6,8 +6,8 @@ MainForm::MainForm(QWidget *parent)
 	: QDialog(parent)
 {
 	this->geometry();
-	this->setModal(Qt::WindowModal);
-	this->resize(400, 400);
+	this->setModal(Qt::WindowModal); 
+	this->resize(600, 400);
 
 	pMainLayout = new QHBoxLayout(this); 
 	pDesignLayout = new QVBoxLayout(this);
@@ -45,11 +45,11 @@ MainForm::MainForm(QWidget *parent)
 
 	this->setLayout(pMainLayout);
 
-	QObject::connect(this->pCGBoxIndex->pCheckBoxFinger, &QCheckBox::stateChanged, this, &MainForm::func);
-	QObject::connect(this->pCGBoxMiddle->pCheckBoxFinger, &QCheckBox::stateChanged, this, &MainForm::func);
-	QObject::connect(this->pCGBoxRing->pCheckBoxFinger, &QCheckBox::stateChanged, this, &MainForm::func);
-	QObject::connect(this->pCGBoxPinky->pCheckBoxFinger, &QCheckBox::stateChanged, this, &MainForm::func);
-
+	QObject::connect(this->pCGBoxIndex, &QGroupBox::toggled, this, &MainForm::func);
+	QObject::connect(this->pCGBoxMiddle, &QGroupBox::toggled, this, &MainForm::func);
+	QObject::connect(this->pCGBoxRing, &QGroupBox::toggled, this, &MainForm::func);
+	QObject::connect(this->pCGBoxPinky, &QGroupBox::toggled, this, &MainForm::func);
+	QObject::connect(this->pPushBtnCreate, &QPushButton::clicked, this, &MainForm::totalCheck);
 	/*ui.setupUi(this);*/
 }
 
@@ -58,8 +58,8 @@ MainForm::~MainForm()
 
 void MainForm::func() {
 
-	int finger_amount = this->pCGBoxIndex->pCheckBoxFinger->isChecked() + this->pCGBoxMiddle->pCheckBoxFinger->isChecked() 
-		+ this->pCGBoxRing->pCheckBoxFinger->isChecked() + this->pCGBoxPinky->pCheckBoxFinger->isChecked();
+	this->finger_amount = this->pCGBoxIndex->isChecked() + this->pCGBoxMiddle->isChecked() 
+		+ this->pCGBoxRing->isChecked() + this->pCGBoxPinky->isChecked();
 
 	switch (finger_amount) {
 	case 1: {
@@ -89,11 +89,43 @@ void MainForm::func() {
 
 int MainForm::totalCheck()
 {
-	enum totalValidation checkIndex = this->pCGBoxIndex->totalValidation();
-	enum totalValidation checkMiddle = this->pCGBoxIndex->totalValidation();
-	enum totalValidation checkRing = this->pCGBoxIndex->totalValidation();
-	enum totalValidation checkPinky   = this->pCGBoxIndex->totalValidation();
+	if (finger_amount == 0) {
+		QMessageBox::warning(this, (QString)"CAUTION", infoMessages[0], QMessageBox::Ok, QMessageBox::StandardButton::NoButton);
+		totalCheckState = 1;
+		return totalCheckState;
+	}
 
-	return 0;
+	enum totalValidation checkIndex = correct;
+	enum totalValidation checkMiddle = correct;
+	enum totalValidation checkRing = correct;
+	enum totalValidation checkPinky = correct;
+
+	if (this->pCGBoxIndex->isChecked()) {
+		checkIndex = this->pCGBoxIndex->totalValidation();
+	}
+	if (this->pCGBoxMiddle->isChecked()) {
+		checkMiddle = this->pCGBoxMiddle->totalValidation();
+	}
+	if (this->pCGBoxRing->isChecked()) {
+		checkRing = this->pCGBoxRing->totalValidation();
+	}
+	if (this->pCGBoxPinky->isChecked())
+	{
+		checkPinky = this->pCGBoxPinky->totalValidation();
+	}
+
+	totalCheckState = checkIndex + checkMiddle + checkRing + checkPinky;
+
+	if (totalCheckState != 0)
+	{
+		QMessageBox::warning(this, (QString)"CAUTION", infoMessages[1], QMessageBox::Ok, QMessageBox::StandardButton::NoButton);
+		totalCheckState = 1;
+	}
+	else
+	{
+		this->close();
+	}
+
+	return totalCheckState;
 }
 

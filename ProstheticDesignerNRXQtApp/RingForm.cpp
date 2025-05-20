@@ -37,11 +37,10 @@ RingForm::RingForm(QWidget *parent)
 
     horizontalLayout->addItem(horizontalSpacer);
 
+
     Create_pushBtn = new QPushButton("Create", this);
     Create_pushBtn->setObjectName(QString::fromUtf8("Create_pushBtn"));
-
     horizontalLayout->addWidget(Create_pushBtn);
-
 
     verticalLayout->addLayout(horizontalLayout);
 
@@ -66,7 +65,7 @@ RingForm::~RingForm()
 
 void RingForm::configureComboBox(QComboBox* box)
 {
-    unsigned int init_size = 12;
+    unsigned int init_size = 18;
     unsigned int max_size = 25;
 
     for (unsigned int i = init_size; i <= max_size; i++)

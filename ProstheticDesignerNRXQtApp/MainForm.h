@@ -28,6 +28,13 @@ public:
 	QPushButton* pPushBtnReject = new QPushButton("Cancel", this);
 	QPushButton* pPushBtnCreate = new QPushButton("Create", this);
 
+	int finger_amount = 0;
+
+	std::map<int, QString> infoMessages = { {0, "No finger specified"},
+		{1, "Incorrect specified data"} };
+
+	int totalCheckState = 0;
+
 public:
 	int totalCheck();
 

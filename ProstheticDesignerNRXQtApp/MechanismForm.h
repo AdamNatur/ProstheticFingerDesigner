@@ -44,8 +44,19 @@ public:
     QLineEdit* lineEdit_distalLength;
     QLineEdit* lineEdit_distalLengthStatus;
 
-    
-    //QPushButton* pushBtn_Create;
+    int checkBaseLength = 1;
+    int checkR2Length = 1;
+    int checkR2HandLength = 1;
+    int checkR3Length = 1;
+    int checkMiddleHandLength = 1;
+    int checkMiddleBaseLength = 1;
+    int checkDistalLength = 1;
+
+    QPushButton* pushBtn_OK;
+
+    QSpacerItem* spacerV;
+
+    int totalValidation = 1;
 
 
 public:
@@ -56,6 +67,17 @@ public:
         QLineEdit* lineEditStatus, QString title);
 
     void MechanismForm::retranslateUi();
+    int validation(QLineEdit* pLineEdit, QLineEdit* lineEditStatus, double min, double max);
+    void changeStyle(QLineEdit* pLineEdit, int i);
+
+
+    std::map<std::string, double> max{ {"baseLength", 8.5}, {"distalLength", 8.0} ,
+    {"r2Length", 73.0}, {"r2HandLength", 9.0}, {"r3Length", 76.0}, {"middleHandLength", 8.0},
+    {"middleBaseLength", 18} };
+
+    std::map<std::string, double> min{ {"baseLength", 7.0}, {"distalLength", 6.0} ,
+    {"r2Length", 70.0}, {"r2HandLength", 7.0}, {"r3Length", 73.0}, {"middleHandLength", 6.0},
+    {"middleBaseLength", 16.0} };
 
 private slots:
     void r2LengthPicked();
@@ -65,5 +87,6 @@ private slots:
     void baseLengthPicked();
     void middleBaseLengthPicked();
     void middleHandLengthPicked();
+    void apply();
 
 };

@@ -127,6 +127,7 @@
   <ItemGroup>
     <QtMoc Include="RingForm.h" />
     <QtMoc Include="PlateForm.h" />
+    <ClInclude Include="Ring.h" />
     <ClInclude Include="MechanismForm.h" />
     <QtMoc Include="MainForm.h" />
     <QtMoc Include="CustomQGroupBox.h" />
@@ -142,6 +143,7 @@
     <ClCompile Include="PlateForm.cpp" />
     <ClCompile Include="ProstheticDesignerNrxAppQt.cpp" />
     <ClCompile Include="RingForm.cpp" />
+    <ClCompile Include="Ring.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug NCAD|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release NCAD|x64'">Create</PrecompiledHeader>
