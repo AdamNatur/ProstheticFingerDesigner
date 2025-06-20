@@ -44,17 +44,7 @@ RingForm::RingForm(QWidget *parent)
 
     verticalLayout->addLayout(horizontalLayout);
 
-    QDir currentDir;
-
-    currentDir.currentPath();
-
-    QString pic_filepath_kinematics;
-
-    pic_filepath_kinematics = currentDir.relativeFilePath("C:/Users/adamn/source/repos/ProstheticDesignerNRXQtApp/Qt/Media/Ring.jpg");
-
-    QPixmap pix(pic_filepath_kinematics); 
-
-    this->label_Picture->setPixmap(pix);
+    this->label_Picture->setPixmap(QPixmap(QString::fromUtf8(":/new/prefix1/Qt/Media/Ring.jpg")));
 
     connect(this->Create_pushBtn, &QPushButton::clicked, [&]() {});
 

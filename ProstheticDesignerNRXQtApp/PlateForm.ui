@@ -32,7 +32,7 @@
      <item>
       <widget class="QCheckBox" name="checkBox_Index">
        <property name="text">
-        <string>Указательный палец</string>
+        <string>Index finger</string>
        </property>
       </widget>
      </item>
@@ -41,7 +41,7 @@
        <item>
         <widget class="QLabel" name="label_finger_Length">
          <property name="text">
-          <string>Длина</string>
+          <string>Length</string>
          </property>
         </widget>
        </item>
@@ -60,7 +60,7 @@
      <item>
       <widget class="QCheckBox" name="checkBox_middle">
        <property name="text">
-        <string>Средний палец</string>
+        <string>Middle finger</string>
        </property>
       </widget>
      </item>
@@ -69,7 +69,7 @@
        <item>
         <widget class="QLabel" name="label">
          <property name="text">
-          <string>Длина</string>
+          <string>Length</string>
          </property>
         </widget>
        </item>
@@ -88,7 +88,7 @@
      <item>
       <widget class="QCheckBox" name="checkBox_Ring">
        <property name="text">
-        <string>Безыменный палец</string>
+        <string>Ring finger</string>
        </property>
       </widget>
      </item>
@@ -96,8 +96,11 @@
       <layout class="QHBoxLayout" name="horizontalLayout_5">
        <item>
         <widget class="QLabel" name="label_2">
+         <property name="frameShape">
+          <enum>QFrame::NoFrame</enum>
+         </property>
          <property name="text">
-          <string>Длина</string>
+          <string>Length</string>
          </property>
         </widget>
        </item>
@@ -116,7 +119,7 @@
      <item>
       <widget class="QCheckBox" name="checkBox_Pinky">
        <property name="text">
-        <string>Мизинец</string>
+        <string>Pinky finger</string>
        </property>
       </widget>
      </item>
@@ -124,8 +127,11 @@
       <layout class="QHBoxLayout" name="horizontalLayout_4">
        <item>
         <widget class="QLabel" name="label_3">
+         <property name="frameShape">
+          <enum>QFrame::NoFrame</enum>
+         </property>
          <property name="text">
-          <string>Длина</string>
+          <string>Length</string>
          </property>
         </widget>
        </item>
@@ -153,7 +159,7 @@
      <item>
       <widget class="QPushButton" name="pushBtn_Create">
        <property name="text">
-        <string>Построить</string>
+        <string>Create</string>
        </property>
       </widget>
      </item>

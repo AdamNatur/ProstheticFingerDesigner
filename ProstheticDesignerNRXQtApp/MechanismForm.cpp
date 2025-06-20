@@ -74,7 +74,7 @@ MechanismForm::MechanismForm(QWidget *parent)
     configureHLayout(hLayout4, label_r3Length, lineEdit_r3Length, lineEdit_r3LengthStatus,
         "r3Length");
     configureHLayout(hLayout5, label_middleHandLength, lineEdit_middleHandLength, lineEdit_middleHandLengthStatus,
-        "middleLength");
+        "middleHandLength");
     configureHLayout(hLayout6, label_middleBaseLength, lineEdit_middleBaseLength, lineEdit_middleBaseLengthStatus,
         "middleBaseLength");
     configureHLayout(hLayout7, label_distalLength, lineEdit_distalLength, lineEdit_distalLengthStatus,
@@ -137,8 +137,10 @@ void MechanismForm::configureHLayout(QHBoxLayout* layout, QLabel* label, QLineEd
 
 void MechanismForm::r2LengthPicked()
 {
-    label_Picture->setPixmap(QPixmap(QString::fromUtf8(":/new/prefix1/Qt/Media/Mechanism/Mechanism_r2Length.jpg")));
-    checkR2Length = validation(lineEdit_r2Length, lineEdit_r2LengthStatus, min[GET_VARIABLE_NAME(r2Length)], max[GET_VARIABLE_NAME(r2Length)]);
+    QString path = QString::fromUtf8(":/new/prefix1/Qt/Media/Mechanism/Mechanism_r2Length.jpg");
+    label_Picture->setPixmap(QPixmap(path));
+    checkR2Length = validation(lineEdit_r2Length, lineEdit_r2LengthStatus, 
+        min[GET_VARIABLE_NAME(r2Length)], max[GET_VARIABLE_NAME(r2Length)]);
 }
 
 void MechanismForm::r2HandLengthPicked()

@@ -38,12 +38,12 @@
      <item>
       <widget class="QLabel" name="label_InnerDiam">
        <property name="text">
-        <string>Внутренний диаметр кольца</string>
+        <string>Inner Diameter</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="lineEdit"/>
+      <widget class="QComboBox" name="comboBox"/>
      </item>
      <item>
       <spacer name="horizontalSpacer">
@@ -64,7 +64,7 @@
      <item>
       <widget class="QPushButton" name="Create_pushBtn">
        <property name="text">
-        <string>Рассчитать</string>
+        <string>Create</string>
        </property>
       </widget>
      </item>

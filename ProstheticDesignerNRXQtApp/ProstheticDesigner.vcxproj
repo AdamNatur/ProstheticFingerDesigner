@@ -72,7 +72,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug NCAD|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>C:\Users\adamn\source\repos\ProstheticDesignerNRXQtApp</OutDir>
+    <OutDir>$(SolutionDir)</OutDir>
     <IntDir>$(SolutionDir)..\..\trash-$(Platform)\$(ProjectName)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release NCAD|x64'">

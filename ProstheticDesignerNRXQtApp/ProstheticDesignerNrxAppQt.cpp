@@ -83,158 +83,176 @@ void FingerProsthetic_Plate() {
 
 	QObject::connect(pPlateForm->ui.pushBtn_Create, &QPushButton::clicked, [&]() {
 
-		AcDbBlockTable* pBlockTable;
-		acdbHostApplicationServices()->workingDatabase()->getSymbolTable(pBlockTable, AcDb::kForRead);
-		AcDbBlockTableRecord* pBlock;
-		pBlockTable->getAt(ACDB_MODEL_SPACE, pBlock, AcDb::kForWrite);
-		pBlockTable->close();
+		int index = pPlateForm->ui.checkBox_Index->isChecked();
+		int ring = pPlateForm->ui.checkBox_Ring->isChecked();
+		int pinky = pPlateForm->ui.checkBox_Pinky->isChecked();
+		int middle = pPlateForm->ui.checkBox_middle->isChecked();
 
-		///Plate parameters
+		int check = index + ring + pinky + middle;
 
-		double bracer_width = 15;	/// Bracer width
-		double bracer_length = 100;	/// Bracer length
-
-		double finger_width = 18;	// Finger width for bracer
-
-		double mainPlateFinger_width = 80; // Total width of all fingers
-		double distanceBtwJoints = (mainPlateFinger_width - finger_width) / 3; // Distance between each joint (equal)
-
-		double bracer_offset = (bracer_length - mainPlateFinger_width) / 2; // Offset from edge of bracer to first finger
-
-		double plate_thickness = 2; // Thickness plate
-		double cylinder_height = 4; // Cylinder height
-		double hole = 8; // Hole diameter
-
-		NcDb3dSolid* pPlateSolid = new NcDb3dSolid();
-		pPlateSolid = rectangleExtrude(pBlock, NcGePoint3d(0, 0, 0), bracer_width, bracer_length, plate_thickness);
-		NcGePoint3d fingerJointCenter(0,0,0);
-
-
-		///Creating finger plates for each finger
-
-		if (pPlateForm->ui.checkBox_Index->isChecked()) {
-
-			fingerJointCenter.set(bracer_offset + finger_width / 2, bracer_width + pPlateForm->ui.lineEdit_IndexFinger->text().toDouble(), 0);
-
-			NcDb3dSolid* pFingerSolid = rectangleExtrude(pBlock, NcGePoint3d(bracer_offset, bracer_width, 0), pPlateForm->ui.lineEdit_IndexFinger->text().toDouble(), finger_width, plate_thickness);
-			pPlateSolid->booleanOper(NcDb::BoolOperType::kBoolUnite, pFingerSolid);
-
-			NcDb3dSolid* pCylinderToAdd = cylinderExtrude(pBlock, fingerJointCenter, NcGeVector3d(0, 0, 1), finger_width / 2, cylinder_height);
-
-			pBlock->appendNcDbEntity(pCylinderToAdd);
-
-			pPlateSolid->booleanOper(NcDb::BoolOperType::kBoolUnite, pCylinderToAdd);
-
-			NcDb3dSolid* pCylinderToCut = cylinderExtrude(pBlock, fingerJointCenter, NcGeVector3d(0, 0, 1), hole / 2, cylinder_height);
-
-			pBlock->appendNcDbEntity(pCylinderToCut);
-
-			pPlateSolid->booleanOper(NcDb::BoolOperType::kBoolSubtract, pCylinderToCut);
-
-			pCylinderToCut->close();
-			pCylinderToAdd->close();
+		if (index == 0) {
+			QMessageBox::warning(pPlateForm, "WARNING",
+				"No finger specified!",
+				QMessageBox::Ok, QMessageBox::StandardButton::NoButton);
 		}
+		else
+		{
 
-		if (pPlateForm->ui.checkBox_middle->isChecked()) {
 
-			fingerJointCenter.set(bracer_offset + finger_width / 2 + distanceBtwJoints, bracer_width + pPlateForm->ui.lineEdit_MiddleFinger->text().toDouble(), 0);
+			AcDbBlockTable* pBlockTable;
+			acdbHostApplicationServices()->workingDatabase()->getSymbolTable(pBlockTable, AcDb::kForRead);
+			AcDbBlockTableRecord* pBlock;
+			pBlockTable->getAt(ACDB_MODEL_SPACE, pBlock, AcDb::kForWrite);
+			pBlockTable->close();
 
-			NcDb3dSolid* pFingerSolid = rectangleExtrude(pBlock, NcGePoint3d(bracer_offset + distanceBtwJoints, bracer_width, 0), pPlateForm->ui.lineEdit_MiddleFinger->text().toDouble(), finger_width, plate_thickness);
-			pPlateSolid->booleanOper(NcDb::BoolOperType::kBoolUnite, pFingerSolid);
+			///Plate parameters
 
-			NcDb3dSolid* pCylinderToAdd = cylinderExtrude(pBlock, fingerJointCenter, NcGeVector3d(0, 0, 1), finger_width / 2, cylinder_height);
+			double bracer_width = 15;	/// Bracer width
+			double bracer_length = 120;	/// Bracer length
 
-			pBlock->appendNcDbEntity(pCylinderToAdd);
+			double finger_width = 18;	// Finger width for bracer
 
-			pPlateSolid->booleanOper(NcDb::BoolOperType::kBoolUnite, pCylinderToAdd);
+			double mainPlateFinger_width = 80; // Total width of all fingers
+			double distanceBtwJoints = (mainPlateFinger_width - finger_width) / 3; // Distance between each joint (equal)
 
-			NcDbCircle* pCircleToCut = new NcDbCircle(fingerJointCenter, NcGeVector3d(0, 0, 1), hole / 2);
+			double bracer_offset = (bracer_length - mainPlateFinger_width) / 2; // Offset from edge of bracer to first finger
 
-			NcDb3dSolid* pCylinderToCut = cylinderExtrude(pBlock, fingerJointCenter, NcGeVector3d(0, 0, 1), hole / 2, cylinder_height);
+			double plate_thickness = 2; // Thickness plate
+			double cylinder_height = 4; // Cylinder height
+			double hole = 8; // Hole diameter
 
-			pBlock->appendNcDbEntity(pCylinderToCut);
+			NcDb3dSolid* pPlateSolid = new NcDb3dSolid();
+			pPlateSolid = rectangleExtrude(pBlock, NcGePoint3d(0, 0, 0), bracer_width, bracer_length, plate_thickness);
+			NcGePoint3d fingerJointCenter(0, 0, 0);
 
-			pPlateSolid->booleanOper(NcDb::BoolOperType::kBoolSubtract, pCylinderToCut);
 
-			pCylinderToCut->close();
-			pCylinderToAdd->close();
+			///Creating finger plates for each finger
+
+			if (pPlateForm->ui.checkBox_Index->isChecked()) {
+
+				fingerJointCenter.set(bracer_offset + finger_width / 2, bracer_width + pPlateForm->ui.lineEdit_IndexFinger->text().toDouble(), 0);
+
+				NcDb3dSolid* pFingerSolid = rectangleExtrude(pBlock, NcGePoint3d(bracer_offset, bracer_width, 0), pPlateForm->ui.lineEdit_IndexFinger->text().toDouble(), finger_width, plate_thickness);
+				pPlateSolid->booleanOper(NcDb::BoolOperType::kBoolUnite, pFingerSolid);
+
+				NcDb3dSolid* pCylinderToAdd = cylinderExtrude(pBlock, fingerJointCenter, NcGeVector3d(0, 0, 1), finger_width / 2, cylinder_height);
+
+				pBlock->appendNcDbEntity(pCylinderToAdd);
+
+				pPlateSolid->booleanOper(NcDb::BoolOperType::kBoolUnite, pCylinderToAdd);
+
+				NcDb3dSolid* pCylinderToCut = cylinderExtrude(pBlock, fingerJointCenter, NcGeVector3d(0, 0, 1), hole / 2, cylinder_height);
+
+				pBlock->appendNcDbEntity(pCylinderToCut);
+
+				pPlateSolid->booleanOper(NcDb::BoolOperType::kBoolSubtract, pCylinderToCut);
+
+				pCylinderToCut->close();
+				pCylinderToAdd->close();
+			}
+
+			if (pPlateForm->ui.checkBox_middle->isChecked()) {
+
+				fingerJointCenter.set(bracer_offset + finger_width / 2 + distanceBtwJoints, bracer_width + pPlateForm->ui.lineEdit_MiddleFinger->text().toDouble(), 0);
+
+				NcDb3dSolid* pFingerSolid = rectangleExtrude(pBlock, NcGePoint3d(bracer_offset + distanceBtwJoints, bracer_width, 0), pPlateForm->ui.lineEdit_MiddleFinger->text().toDouble(), finger_width, plate_thickness);
+				pPlateSolid->booleanOper(NcDb::BoolOperType::kBoolUnite, pFingerSolid);
+
+				NcDb3dSolid* pCylinderToAdd = cylinderExtrude(pBlock, fingerJointCenter, NcGeVector3d(0, 0, 1), finger_width / 2, cylinder_height);
+
+				pBlock->appendNcDbEntity(pCylinderToAdd);
+
+				pPlateSolid->booleanOper(NcDb::BoolOperType::kBoolUnite, pCylinderToAdd);
+
+				NcDbCircle* pCircleToCut = new NcDbCircle(fingerJointCenter, NcGeVector3d(0, 0, 1), hole / 2);
+
+				NcDb3dSolid* pCylinderToCut = cylinderExtrude(pBlock, fingerJointCenter, NcGeVector3d(0, 0, 1), hole / 2, cylinder_height);
+
+				pBlock->appendNcDbEntity(pCylinderToCut);
+
+				pPlateSolid->booleanOper(NcDb::BoolOperType::kBoolSubtract, pCylinderToCut);
+
+				pCylinderToCut->close();
+				pCylinderToAdd->close();
+
+			}
+
+			if (pPlateForm->ui.checkBox_Ring->isChecked()) {
+
+				fingerJointCenter.set(bracer_offset + finger_width / 2 + 2 * distanceBtwJoints, bracer_width + pPlateForm->ui.lineEdit_RingFinger->text().toDouble(), 0);
+
+				NcDb3dSolid* pFingerSolid = rectangleExtrude(pBlock, NcGePoint3d(bracer_offset + 2 * distanceBtwJoints, bracer_width, 0), pPlateForm->ui.lineEdit_RingFinger->text().toDouble(), finger_width, plate_thickness);
+				pPlateSolid->booleanOper(NcDb::BoolOperType::kBoolUnite, pFingerSolid);
+
+				NcDbCircle* pCircleToAdd = new NcDbCircle(fingerJointCenter, NcGeVector3d(0, 0, 1), finger_width / 2);
+
+				NcDb3dSolid* pCylinderToAdd = cylinderExtrude(pBlock, fingerJointCenter, NcGeVector3d(0, 0, 1), finger_width / 2, cylinder_height);
+
+				pBlock->appendNcDbEntity(pCylinderToAdd);
+
+				pPlateSolid->booleanOper(NcDb::BoolOperType::kBoolUnite, pCylinderToAdd);
+
+				NcDb3dSolid* pCylinderToCut = cylinderExtrude(pBlock, fingerJointCenter, NcGeVector3d(0, 0, 1), hole / 2, cylinder_height);
+
+				pBlock->appendNcDbEntity(pCylinderToCut);
+
+				pPlateSolid->booleanOper(NcDb::BoolOperType::kBoolSubtract, pCylinderToCut);
+
+				pCylinderToCut->close();
+				pCylinderToAdd->close();
+
+			}
+
+			if (pPlateForm->ui.checkBox_Pinky->isChecked()) {
+
+				fingerJointCenter.set(bracer_offset + finger_width / 2 + 3 * distanceBtwJoints, bracer_width + pPlateForm->ui.lineEdit_Pinky->text().toDouble(), 0);
+
+				NcDb3dSolid* pFingerSolid = rectangleExtrude(pBlock, NcGePoint3d(bracer_offset + 3 * distanceBtwJoints, bracer_width, 0), pPlateForm->ui.lineEdit_Pinky->text().toDouble(), finger_width, plate_thickness);
+				pPlateSolid->booleanOper(NcDb::BoolOperType::kBoolUnite, pFingerSolid);
+
+				NcDbCircle* pCircleToAdd = new NcDbCircle(fingerJointCenter, NcGeVector3d(0, 0, 1), finger_width / 2);
+
+				NcDb3dSolid* pCylinderToAdd = cylinderExtrude(pBlock, fingerJointCenter, NcGeVector3d(0, 0, 1), finger_width / 2, cylinder_height);
+
+				pBlock->appendNcDbEntity(pCylinderToAdd);
+
+				pPlateSolid->booleanOper(NcDb::BoolOperType::kBoolUnite, pCylinderToAdd);
+
+				NcDbCircle* pCircleToCut = new NcDbCircle(fingerJointCenter, NcGeVector3d(0, 0, 1), hole / 2);
+
+				NcDb3dSolid* pCylinderToCut = cylinderExtrude(pBlock, fingerJointCenter, NcGeVector3d(0, 0, 1), hole / 2, cylinder_height);
+
+				pBlock->appendNcDbEntity(pCylinderToCut);
+
+				pPlateSolid->booleanOper(NcDb::BoolOperType::kBoolSubtract, pCylinderToCut);
+
+				pCylinderToCut->close();
+				pCylinderToAdd->close();
+			}
+
+			double slotOffset_thickness = 4;
+			double slot_width = 3;
+
+
+			NcDb3dSolid* pSlotLeft = rectangleExtrude(pBlock, NcGePoint3d(slotOffset_thickness, slotOffset_thickness, 0), bracer_width - slotOffset_thickness * 2, slot_width, plate_thickness);
+
+			pPlateSolid->booleanOper(NcDb::BoolOperType::kBoolSubtract, pSlotLeft);
+
+
+			NcDb3dSolid* pSlotRight = rectangleExtrude(pBlock, NcGePoint3d(bracer_length - slotOffset_thickness - slot_width, slotOffset_thickness, 0), bracer_width - slotOffset_thickness * 2, slot_width, plate_thickness);
+
+			pPlateSolid->booleanOper(NcDb::BoolOperType::kBoolSubtract, pSlotRight);
+
+			pBlock->appendAcDbEntity(pPlateSolid);
+
+			pPlateSolid->close();
+			pBlock->close();
+
+			acutPrintf(L"\nПлатформа успешно построена!\n");
+
+			pPlateForm->close();
 
 		}
-
-		if (pPlateForm->ui.checkBox_Ring->isChecked()) {
-
-			fingerJointCenter.set(bracer_offset + finger_width / 2 + 2 * distanceBtwJoints, bracer_width + pPlateForm->ui.lineEdit_RingFinger->text().toDouble(), 0);
-
-			NcDb3dSolid* pFingerSolid = rectangleExtrude(pBlock, NcGePoint3d(bracer_offset + 2 * distanceBtwJoints, bracer_width, 0), pPlateForm->ui.lineEdit_RingFinger->text().toDouble(), finger_width, plate_thickness);
-			pPlateSolid->booleanOper(NcDb::BoolOperType::kBoolUnite, pFingerSolid);
-
-			NcDbCircle* pCircleToAdd = new NcDbCircle(fingerJointCenter, NcGeVector3d(0, 0, 1), finger_width / 2);
-
-			NcDb3dSolid* pCylinderToAdd = cylinderExtrude(pBlock, fingerJointCenter, NcGeVector3d(0, 0, 1), finger_width / 2, cylinder_height);
-
-			pBlock->appendNcDbEntity(pCylinderToAdd);
-
-			pPlateSolid->booleanOper(NcDb::BoolOperType::kBoolUnite, pCylinderToAdd);
-
-			NcDb3dSolid* pCylinderToCut = cylinderExtrude(pBlock, fingerJointCenter, NcGeVector3d(0, 0, 1), hole / 2, cylinder_height);
-
-			pBlock->appendNcDbEntity(pCylinderToCut);
-
-			pPlateSolid->booleanOper(NcDb::BoolOperType::kBoolSubtract, pCylinderToCut);
-
-			pCylinderToCut->close();
-			pCylinderToAdd->close();
-
-		}
-
-		if (pPlateForm->ui.checkBox_Pinky->isChecked()) {
-
-			fingerJointCenter.set(bracer_offset + finger_width / 2 + 3 * distanceBtwJoints, bracer_width + pPlateForm->ui.lineEdit_Pinky->text().toDouble(), 0);
-
-			NcDb3dSolid* pFingerSolid = rectangleExtrude(pBlock, NcGePoint3d(bracer_offset + 3 * distanceBtwJoints, bracer_width, 0), pPlateForm->ui.lineEdit_Pinky->text().toDouble(), finger_width, plate_thickness);
-			pPlateSolid->booleanOper(NcDb::BoolOperType::kBoolUnite, pFingerSolid);
-
-			NcDbCircle* pCircleToAdd = new NcDbCircle(fingerJointCenter, NcGeVector3d(0, 0, 1), finger_width / 2);
-
-			NcDb3dSolid* pCylinderToAdd = cylinderExtrude(pBlock, fingerJointCenter, NcGeVector3d(0, 0, 1), finger_width / 2, cylinder_height);
-
-			pBlock->appendNcDbEntity(pCylinderToAdd);
-
-			pPlateSolid->booleanOper(NcDb::BoolOperType::kBoolUnite, pCylinderToAdd);
-
-			NcDbCircle* pCircleToCut = new NcDbCircle(fingerJointCenter, NcGeVector3d(0, 0, 1), hole / 2);
-
-			NcDb3dSolid* pCylinderToCut = cylinderExtrude(pBlock, fingerJointCenter, NcGeVector3d(0, 0, 1), hole / 2, cylinder_height);
-
-			pBlock->appendNcDbEntity(pCylinderToCut);
-
-			pPlateSolid->booleanOper(NcDb::BoolOperType::kBoolSubtract, pCylinderToCut);
-
-			pCylinderToCut->close();
-			pCylinderToAdd->close();
-		}
-
-		double slotOffset_thickness = 4;
-		double slot_width = 3;
-
-
-		NcDb3dSolid* pSlotLeft = rectangleExtrude(pBlock, NcGePoint3d(slotOffset_thickness, slotOffset_thickness, 0), bracer_width - slotOffset_thickness * 2, slot_width, plate_thickness);
-
-		pPlateSolid->booleanOper(NcDb::BoolOperType::kBoolSubtract, pSlotLeft);
-
-
-		NcDb3dSolid* pSlotRight = rectangleExtrude(pBlock, NcGePoint3d(bracer_length - slotOffset_thickness - slot_width, slotOffset_thickness, 0), bracer_width - slotOffset_thickness * 2, slot_width, plate_thickness);
-
-		pPlateSolid->booleanOper(NcDb::BoolOperType::kBoolSubtract, pSlotRight);
-
-		pBlock->appendAcDbEntity(pPlateSolid);
-
-		pPlateSolid->close();
-		pBlock->close();
-
-		acutPrintf(L"\nПлатформа успешно построена!\n");
-
-		pPlateForm->close();
 
 		});
 
@@ -244,6 +262,10 @@ void FingerProsthetic_Plate() {
 void FingerProsthetic_Designer() {
 
 	MainForm* pMainForm = new MainForm(nullptr);
+
+	QObject::connect(pMainForm->pPushBtnReject, &QPushButton::clicked, [&]() {
+		pMainForm->reject();
+	});
 
 	QObject::connect(pMainForm->pPushBtnCreate, &QPushButton::clicked, [&]() {
 
@@ -280,21 +302,26 @@ void FingerProsthetic_Designer() {
 
 			if (pMainForm->pCGBoxIndex->isChecked()) {
 
-				fingerJointCenter.set(bracer_offset + finger_width / 2, bracer_width + pMainForm->pCGBoxIndex->pLineEditSetJointDist->text().toDouble(), 0);
+				fingerJointCenter.set(bracer_offset + finger_width / 2, 
+					bracer_width + pMainForm->pCGBoxIndex->pLineEditSetJointDist->text().toDouble(), 0);
 
-				NcDb3dSolid* pFingerSolid = rectangleExtrude(pBlock, NcGePoint3d(bracer_offset, bracer_width, 0), pMainForm->pCGBoxIndex->pLineEditSetJointDist->text().toDouble(), finger_width, plate_thickness);
+				NcDb3dSolid* pFingerSolid = rectangleExtrude(pBlock, NcGePoint3d(bracer_offset, bracer_width, 0), 
+					pMainForm->pCGBoxIndex->pLineEditSetJointDist->text().toDouble(), finger_width, plate_thickness);
 				pPlateSolid->booleanOper(NcDb::BoolOperType::kBoolUnite, pFingerSolid);
 
-				NcDb3dSolid* pCylinderToAdd = cylinderExtrude(pBlock, fingerJointCenter, NcGeVector3d(0, 0, 1), finger_width / 2, cylinder_height);
+				NcDb3dSolid* pCylinderToAdd = cylinderExtrude(pBlock, fingerJointCenter, NcGeVector3d(0, 0, 1), 
+					finger_width / 2, cylinder_height);
 				pPlateSolid->booleanOper(NcDb::BoolOperType::kBoolUnite, pCylinderToAdd);
 
-				NcDb3dSolid* pCylinderToCut = cylinderExtrude(pBlock, fingerJointCenter, NcGeVector3d(0, 0, 1), hole / 2, cylinder_height);
+				NcDb3dSolid* pCylinderToCut = cylinderExtrude(pBlock, fingerJointCenter, NcGeVector3d(0, 0, 1), 
+					hole / 2, cylinder_height);
 				pPlateSolid->booleanOper(NcDb::BoolOperType::kBoolSubtract, pCylinderToCut);
 
-				pCylinderToCut->close();
-				pCylinderToAdd->close();
+				//pCylinderToCut->close();
+				//pCylinderToAdd->close();
 
-				Mechanism mech(pBlock, pMainForm->pCGBoxIndex->pComboBoxRingDiam->currentText().toInt(), pMainForm->pCGBoxIndex->pMechanismForm);
+				Mechanism mech(pBlock, pMainForm->pCGBoxIndex->pComboBoxRingDiam->currentText().toInt(), 
+					pMainForm->pCGBoxIndex->pMechanismForm);
 
 				mech.setPosMech(NcGePoint3d(0, 0, 0), fingerJointCenter);
 
@@ -418,6 +445,7 @@ void FingerProsthetic_Designer() {
 			pBlock->close();
 		}
 	});
+
 
 	pMainForm->exec();
 };

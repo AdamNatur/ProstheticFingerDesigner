@@ -1,0 +1,34 @@
+<linkage2>
+	<program zoom="0.769231" xoffset="189" yoffset="105" scalefactor="1.000000" units="Millimeters" backgroundtransparency="0.000000" backgroundscale="1.000000" xgrid="" ygrid=""/>
+	<connector id="0" selected="false" layer="16" x="-258.400000" y="94.488189" anchor="true" color="16711680" usercolor="false"/>
+	<connector id="1" selected="false" name="H" layer="16" x="-302.362205" y="25.999370" anchor="true" color="12632064" usercolor="false"/>
+	<connector id="2" selected="false" layer="16" x="283.920000" y="-124.540000" color="32768" usercolor="false"/>
+	<connector id="3" selected="false" layer="16" x="264.566929" y="-188.976378" color="16711808" usercolor="false"/>
+	<connector id="4" selected="false" layer="16" x="283.920000" y="-208.051654" color="6854344" usercolor="false"/>
+	<connector id="5" selected="false" layer="16" x="429.520000" y="-188.976378" color="11012476" usercolor="false"/>
+	<connector id="6" selected="false" layer="16" x="453.543307" y="-124.540000" color="16744448" usercolor="false"/>
+	<Link id="0" selected="false" layer="16" linesize="1" shapetype="hull" color="16711680" usercolor="false">
+		<connector id="0"/>
+	</Link>
+	<Link id="1" selected="false" layer="16" linesize="1" shapetype="hull" color="12632064" usercolor="false">
+		<connector id="1"/>
+	</Link>
+	<Link id="2" selected="false" layer="16" linesize="1" shapetype="hull" color="32768" usercolor="false">
+		<connector id="2"/>
+	</Link>
+	<Link id="3" selected="false" layer="16" linesize="1" shapetype="hull" color="16711808" usercolor="false">
+		<connector id="3"/>
+	</Link>
+	<Link id="4" selected="false" layer="16" linesize="1" shapetype="hull" color="6854344" usercolor="false">
+		<connector id="4"/>
+	</Link>
+	<Link id="5" selected="false" layer="16" linesize="1" shapetype="hull" color="11012476" usercolor="false">
+		<connector id="5"/>
+	</Link>
+	<Link id="6" selected="false" layer="16" linesize="1" shapetype="hull" color="16744448" usercolor="false">
+		<connector id="6"/>
+	</Link>
+	<selected>
+	</selected>
+	<background></background>
+</linkage2>

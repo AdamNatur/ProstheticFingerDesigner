@@ -35,7 +35,8 @@ CustomQGroupBox::CustomQGroupBox(const QString& title, QWidget* parent)
 	pLineEditJointDistStatus->setReadOnly(true);
 	changeState(pLineEditJointDistStatus, default);
 
-	QRegExpValidator* validator = new QRegExpValidator(QRegExp("^(?:\[0-9]{1,3}|\[0-9]{1,2}[.]\[0-9]{2})$"), this);
+	QRegExp regexp("^(?:\[0-9]{1,3}|\[0-9]{1,2}[.]\[0-9]{2})$");
+	QRegExpValidator* validator = new QRegExpValidator(regexp, this);
 	pLineEditSetJointDist->setValidator(validator);
 	pLineEditSetJointDist->setDisabled(true);
 

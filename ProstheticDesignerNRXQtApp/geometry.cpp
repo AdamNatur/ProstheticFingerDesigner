@@ -34,11 +34,90 @@ Mechanism::Mechanism(AcDbBlockTableRecord* pBlock, double inner_diam, MechanismF
 	functionalHole_diam = 3;
 
 
+	double arg[1000];
+	double func[1000];
+
+	double minAngle = 20;
+	double maxAngle = 80;
+
+	int n = 100;
+	double increment = (maxAngle-minAngle) / n;
+
+	initial_angle = minAngle;
+
+	for (int number = 0; number <= n; number++)
+	{
+		initial_angle = minAngle + number * increment;
+
+		arg[number] = initial_angle;
+
+		point_H.set(0, 0, 0);
+		point_H_upd.set(point_H.x, point_H.y, point_H.z);
+		point_A.set(point_H.x + base_length * cos(base_angle / 360 * 2 * PI),
+			point_H.y + base_length * sin(base_angle / 360 * 2 * PI), 0);
+		point_I.set(point_H.x + r2_length * cos(-initial_angle / 360 * 2 * PI),
+			point_H.y + r2_length * sin(-initial_angle / 360 * 2 * PI), 0);
+		point_I_upd.set(point_I.x, point_I.y, point_I.z);
+
+		double beta = 180 - initial_angle + r2_angle;
+
+		point_D.set(point_I.x + r2_hand_length * cos(beta / 360 * 2 * PI), point_I.y + r2_hand_length * sin(beta / 360 * 2 * PI), 0);
+
+
+		NcGeCircArc2d circle1(NcGePoint2d(point_A.x, point_A.y), r3_length);
+		NcGeCircArc2d circle2(NcGePoint2d(point_I.x, point_I.y), middle_hand_length);
+		NcGePoint2d point1(0, 0);
+		NcGePoint2d point2(0, 0);
+		int i = 2;
+		circle1.intersectWith(circle2, i, point1, point2, NcGeContext::gTol);
+		NcGePoint2d point_res = point1.y < point_I.y ? point1 : point2;
+		point_C.set(point_res.x, point_res.y, 0);
+
+		NcGeLineSeg2d segCI(NcGePoint2d(point_C.x, point_C.y), NcGePoint2d(point_I.x, point_I.y));
+		NcGeLine2d* normal = new NcGeLine2d();
+		segCI.getPerpLine(NcGePoint2d(point_C.x, point_C.y), *normal);
+		NcGePoint2d endPoint(0, 0);
+		NcGeCircArc2d circleNormal(NcGePoint2d(point_C.x, point_C.y), middle_base_length);
+		NcGePoint2d pointNormal(0, 0);
+		NcGePoint2d pointNormal2(0, 0);
+		int k = 1;
+		circleNormal.intersectWith(*normal, k, pointNormal, pointNormal2, NcGeContext::gTol);
+		endPoint = pointNormal2;
+		NcGeMatrix2d matPnt;
+		matPnt.setToRotation(5 / 360 * 2 * PI, NcGePoint2d(point_C.x, point_C.y));
+		endPoint.transformBy(matPnt);
+		point_G.set(endPoint.x, endPoint.y, 0);
+
+
+		NcGeLineSeg2d segCG(NcGePoint2d(point_C.x, point_C.y), NcGePoint2d(point_G.x, point_G.y));
+		NcGeLine2d* normalCG = new NcGeLine2d();
+		segCG.getPerpLine(NcGePoint2d(point_G.x, point_G.y), *normalCG);
+		NcGePoint2d endPoint2(0, 0);
+		NcGeCircArc2d circleNormal2(NcGePoint2d(point_G.x, point_G.y), distal_length);
+		NcGePoint2d pointNormal12(0, 0); 
+		NcGePoint2d pointNormal22(0, 0);
+		int t = 2;
+		circleNormal2.intersectWith(*normalCG, t, pointNormal12, pointNormal22, NcGeContext::gTol);
+		endPoint2 = pointNormal22;
+		NcGeMatrix2d matPnt2;
+		matPnt2.setToRotation(PI + 5 / 360 * 2 * PI, NcGePoint2d(point_G.x, point_G.y));
+		endPoint2.transformBy(matPnt2);
+		point_F.set(endPoint2.x, endPoint2.y, 0);
+
+		AcGeVector3d IC(point_C.x - point_I.x, point_C.y - point_I.y, point_C.z - point_I.z);
+		AcGeVector3d ID(point_D.x - point_I.x, point_D.y - point_I.y, point_D.z - point_I.z);
+
+		func[number] = ID.angleTo(IC) * 180.0 / PI;
+
+	}
+
+	initial_angle = 27.07;
+
 	point_H.set(0, 0, 0);
 	point_H_upd.set(point_H.x, point_H.y, point_H.z);
-	point_A.set(point_H.x + base_length * cos(base_angle / 360 * 2 * PI), 
+	point_A.set(point_H.x + base_length * cos(base_angle / 360 * 2 * PI),
 		point_H.y + base_length * sin(base_angle / 360 * 2 * PI), 0);
-	point_I.set(point_H.x + r2_length * cos(-initial_angle / 360 * 2 * PI), 
+	point_I.set(point_H.x + r2_length * cos(-initial_angle / 360 * 2 * PI),
 		point_H.y + r2_length * sin(-initial_angle / 360 * 2 * PI), 0);
 	point_I_upd.set(point_I.x, point_I.y, point_I.z);
 
@@ -47,16 +126,16 @@ Mechanism::Mechanism(AcDbBlockTableRecord* pBlock, double inner_diam, MechanismF
 	point_D.set(point_I.x + r2_hand_length * cos(beta / 360 * 2 * PI), point_I.y + r2_hand_length * sin(beta / 360 * 2 * PI), 0);
 
 
-	NcGeCircArc2d circle1(NcGePoint2d(point_A.x,point_A.y), r3_length);
-	NcGeCircArc2d circle2(NcGePoint2d(point_I.x, point_I.y), middle_hand_length); 
-	NcGePoint2d point1(0,0);
-	NcGePoint2d point2(0,0);
+	NcGeCircArc2d circle1(NcGePoint2d(point_A.x, point_A.y), r3_length);
+	NcGeCircArc2d circle2(NcGePoint2d(point_I.x, point_I.y), middle_hand_length);
+	NcGePoint2d point1(0, 0);
+	NcGePoint2d point2(0, 0);
 	int i = 2;
 	circle1.intersectWith(circle2, i, point1, point2, NcGeContext::gTol);
-	NcGePoint2d point_res = point1.y > point2.y ? point2 : point1;
+	NcGePoint2d point_res = point1.y < point_I.y ? point1 : point2;
 	point_C.set(point_res.x, point_res.y, 0);
 
-	NcGeLineSeg2d segCI(NcGePoint2d(point_C.x , point_C.y), NcGePoint2d(point_I.x, point_I.y));
+	NcGeLineSeg2d segCI(NcGePoint2d(point_C.x, point_C.y), NcGePoint2d(point_I.x, point_I.y));
 	NcGeLine2d* normal = new NcGeLine2d();
 	segCI.getPerpLine(NcGePoint2d(point_C.x, point_C.y), *normal);
 	NcGePoint2d endPoint(0, 0);
@@ -65,12 +144,13 @@ Mechanism::Mechanism(AcDbBlockTableRecord* pBlock, double inner_diam, MechanismF
 	NcGePoint2d pointNormal2(0, 0);
 	int k = 1;
 	circleNormal.intersectWith(*normal, k, pointNormal, pointNormal2, NcGeContext::gTol);
+	NcGePoint2d point_res1 = pointNormal.y < point_C.y ? pointNormal : pointNormal2;
 	endPoint = pointNormal2;
 	NcGeMatrix2d matPnt;
 	matPnt.setToRotation(5 / 360 * 2 * PI, NcGePoint2d(point_C.x, point_C.y));
 	endPoint.transformBy(matPnt);
 	point_G.set(endPoint.x, endPoint.y, 0);
-	
+
 
 	NcGeLineSeg2d segCG(NcGePoint2d(point_C.x, point_C.y), NcGePoint2d(point_G.x, point_G.y));
 	NcGeLine2d* normalCG = new NcGeLine2d();
@@ -81,11 +161,13 @@ Mechanism::Mechanism(AcDbBlockTableRecord* pBlock, double inner_diam, MechanismF
 	NcGePoint2d pointNormal22(0, 0);
 	int t = 2;
 	circleNormal2.intersectWith(*normalCG, t, pointNormal12, pointNormal22, NcGeContext::gTol);
-	endPoint2 = pointNormal22;
+	NcGePoint2d point_res2 = pointNormal22/*.y < point_C.y ? pointNormal12 : pointNormal22*/;
+	endPoint2 = point_res2;
 	NcGeMatrix2d matPnt2;
 	matPnt2.setToRotation(PI + 5 / 360 * 2 * PI, NcGePoint2d(point_G.x, point_G.y));
 	endPoint2.transformBy(matPnt2);
 	point_F.set(endPoint2.x, endPoint2.y, 0);
+
 
 
 
@@ -204,7 +286,7 @@ Mechanism::Mechanism(AcDbBlockTableRecord* pBlock, double inner_diam, MechanismF
 
 	NcDb3dSolid* pCircle = cylinderExtrude(pBlock, NcGePoint3d(point_I.x, point_I.y, -offset), NcGeVector3d(0, 0, 1), radius, 9.0);
 
-	pBase_middle ->booleanOper(NcDb::kBoolUnite, pCircle);
+	pBase_middle->booleanOper(NcDb::kBoolUnite, pCircle);
 
 	NcDb3dSolid* pHoleDown1 = cylinderExtrude(pBlock, NcGePoint3d(point_C.x, point_C.y, -offset), NcGeVector3d(0, 0, 1), 1.5, thickness);
 	pBase_middle->booleanOper(NcDb::kBoolSubtract, pHoleDown1);
@@ -470,7 +552,8 @@ void createBase(AcDbBlockTableRecord* pBlock, double base_angle, double base_len
 	pBlock->appendNcDbEntity(pBase);
 }
 
-NcDb3dSolid* createLink(AcDbBlockTableRecord* pBlock, NcGePoint3d startPoint, double centerDist, double radius, double hole_radius, double orientAngle, NcGeVector3d vector, double height) {
+NcDb3dSolid* createLink(AcDbBlockTableRecord* pBlock, NcGePoint3d startPoint, double centerDist, double radius, 
+	double hole_radius, double orientAngle, NcGeVector3d vector, double height) {
 
 	NcDb3dSolid* pSlot = cylinderExtrude(pBlock, NcGePoint3d(0, 0, 0), vector, radius, height);
 
